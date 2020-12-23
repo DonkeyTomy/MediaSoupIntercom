@@ -1,0 +1,2 @@
+include ':mediasoup-client'
+rootProject.name = "MediaSoupIntercom"

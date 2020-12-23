@@ -1,0 +1,505 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/** [ADMIN] RUN update_version.sh AFTER CHANGING THIS FILE **/
+
+/**
+* Shared file between builds so that they can all use the same dependencies and
+* maven repositories.
+**/
+import java.text.SimpleDateFormat
+SimpleDateFormat format = new SimpleDateFormat("yy.MMddHHmm")
+String date = format.format(new Date())
+def time = date
+def deps = [:]
+deps.time = time
+ext.deps = [:]
+
+
+def versions = [:]
+versions.library    = "1.2.0"
+// versions.libraryX   = "1.2.0"
+//1.3.0起默认使用ViewBinding.去除KAE
+versions.libraryX   = "1.3.0"
+versions.kotlin = "1.4.21"
+versions.kotlin_coroutines = "1.3.3"
+versions.kotlin_gradle  = "1.3.60-eap-25"
+
+versions.arch_x         = "2.1.0"
+versions.annotation_x   = "1.1.0"
+//versions.appcompat_x    = "1.1.0"
+versions.appcompat_x    = "1.2.0"
+versions.camera_x       = "1.0.0-beta08"
+versions.cardview_x     = "1.0.0"
+versions.constraintlayout_x = "2.0.2"
+//versions.core_x     = "1.3.0"
+versions.core_x     = "1.3.2"
+versions.drawerlayout_x = "1.1.1"
+versions.espresso_x     = "3.2.0"
+versions.fragment_x     = "1.2.5"
+versions.gridlayout_x   = "1.0.0"
+versions.junit_x        = "1.1.1"
+versions.lifecycle_x    = "2.2.0"
+versions.material       = '1.1.0'
+versions.multidex_x     = "2.0.1"
+versions.navigation_x   = "2.3.0"
+versions.paging_x       = "2.1.2"
+versions.palette_x      = "1.0.0"
+versions.preference_x   = "1.1.1"
+versions.recyclerview_x = "1.1.0"
+versions.room_x         = "2.2.5"
+versions.viewpager_x    = "1.0.0"
+versions.viewpager2     = "1.0.0"
+versions.work_x         = "2.4.0"
+versions.ui_x           = "0.1.0-dev17"
+
+versions.paging         = "1.0.1"
+versions.work           = "1.0.1"
+versions.navigation     = "1.0.0"
+versions.arch_core      = "1.1.1"
+versions.room           = "1.1.1"
+versions.lifecycle      = "1.1.1"
+//versions.support = "28.0.0"
+versions.support        = "27.1.1"
+versions.dagger         = "2.30.1"
+versions.hilt           = "2.30.1-alpha"
+versions.hilt_jetpack = "1.0.0-alpha02"
+versions.butterknife = "10.2.3"
+//versions.butterknife    = "8.8.1"
+//versions.constraint_layout = "1.1.2"
+versions.constraint_layout = "2.0.0-alpha3"
+versions.multidex       = "1.0.3"
+versions.glide          = "4.11.0"
+versions.timber         = "4.7.1"
+//versions.android_gradle_plugin = '4.2.0-alpha13'
+versions.android_gradle_plugin = '4.1.1'
+// versions.android_gradle_plugin = '3.5.1'
+versions.rxjava2        = "2.1.10"
+versions.rx_android     = "2.0.2"
+versions.rxjava3        = "3.0.6"
+versions.rx_android3    = "3.0.0"
+versions.rxlifecycle    = "4.0.0"
+versions.autodispose    = "2.0.0"
+versions.eventbus       = "3.1.1"
+versions.permission     = "2.0.3"
+versions.ijkplayer      = "0.8.8"
+versions.anko           = "0.8.2"
+versions.lite_pal       = "3.2.2"
+versions.lite_pal_old   = "3.0.0"
+
+versions.junit = "4.12"
+versions.espresso = "3.0.2"
+versions.retrofit = "2.9.0"
+versions.gson = "2.8.5"
+versions.okhttp_logging_interceptor = "3.9.0"
+versions.mockwebserver = "3.8.1"
+versions.apache_commons = "2.5"
+versions.mockito = "2.7.19"
+versions.mockito_all = "1.10.19"
+versions.dexmaker = "2.2.0"
+versions.atsl_runner = "1.0.1"
+versions.atsl_rules = "1.0.1"
+versions.hamcrest = "1.3"
+
+versions.smart_show  = "3.0.3"
+versions.loading_view  = "2.1.3"
+versions.swipe_recycler = "1.3.2"
+versions.smartRefresh  = "2.0.1"
+
+def build_versions = [:]
+build_versions.min_sdk = 21
+build_versions.target_sdk = 26
+build_versions.compile_sdk = 28
+build_versions.build_tools = "30.0.0"
+//build_versions.build_tools = "27.0.3"
+ext.build_versions = build_versions
+deps.android_gradle_plugin = "com.android.tools.build:gradle:$versions.android_gradle_plugin"
+
+def library = [:]
+library.utils = "com.github.DonkeyTomy.Library:utils_library:$versions.library"
+library.media = "com.github.DonkeyTomy.Library:media_library:$versions.library"
+library.view = "com.github.DonkeyTomy.Library:view_library:$versions.library"
+deps.library = library
+
+def libraryX = [:]
+libraryX.utils = "com.github.DonkeyTomy.LibraryX:utils_library:$versions.libraryX"
+libraryX.media = "com.github.DonkeyTomy.LibraryX:media_library:$versions.libraryX"
+libraryX.view = "com.github.DonkeyTomy.LibraryX:view_library:$versions.libraryX"
+deps.libraryX = libraryX
+
+def kotlin = [:]
+//前三个要加入根目录build.gradle的dependencies中
+kotlin.plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+kotlin.extensions = "org.jetbrains.kotlin:kotlin-android-extensions:$versions.kotlin"
+kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+kotlin.reflect = "org.jetbrains.kotlin:kotlin-reflect:$versions.kotlin"
+kotlin.stdlib_jdk = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+kotlin.test = "org.jetbrains.kotlin:kotlin-test-junit:$versions.kotlin"
+kotlin.allopen = "org.jetbrains.kotlin:kotlin-allopen:$versions.kotlin"
+kotlin.gradle   = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin_gradle"
+deps.kotlin = kotlin
+
+def kotlin_x = [:]
+kotlin_x.coroutines_core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.kotlin_coroutines"
+/**
+ * 提供了协程中使用的UI线程调度提[Dispatchers.Main]
+ */
+kotlin_x.coroutines_android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.kotlin_coroutines"
+/**
+ * 实现了RxJava的Flowable跟协程中Flow之间的互转
+ * */
+kotlin_x.coroutines_reactive = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$versions.kotlin_coroutines"
+/**
+ * 提供了将协程终端Flow转换为Flowable或者Observable的扩展,还提供了用协程的方式构造RxJava对象的API
+ * */
+kotlin_x.coroutines_rx2 = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$versions.kotlin_coroutines"
+deps.kotlin_x = kotlin_x
+
+def paging = [:]
+paging.runtime = "android.arch.paging:runtime:$versions.paging"
+paging.rxjava2 = "android.arch.paging:rxjava2:$versions.paging"
+deps.paging = paging
+
+def support = [:]
+support.annotations = "com.android.support:support-annotations:$versions.support"
+support.app_compat = "com.android.support:appcompat-v7:$versions.support"
+support.preference = "com.android.support:preference-v7:$versions.support"
+support.recyclerview = "com.android.support:recyclerview-v7:$versions.support"
+support.cardview = "com.android.support:cardview-v7:$versions.support"
+support.design = "com.android.support:design:$versions.support"
+support.v4 = "com.android.support:support-v4:$versions.support"
+support.core_utils = "com.android.support:support-core-utils:$versions.support"
+support.constraint_layout = "com.android.support.constraint:constraint-layout:$versions.constraint_layout"
+support.multidex = "com.android.support:multidex:$versions.multidex"
+deps.support = support
+
+def butterknife = [:]
+butterknife.runtime = "com.jakewharton:butterknife:$versions.butterknife"
+//在Library工程中使用R2需要添加此插件到根build.gradle中
+butterknife.plugin = "com.jakewharton:butterknife-gradle-plugin:$versions.butterknife"
+butterknife.compiler = "com.jakewharton:butterknife-compiler:$versions.butterknife"
+deps.butterknife = butterknife
+
+def anko = [:]
+anko.sdk = "org.jetbrains.anko:anko-sdk23:$versions.anko"
+anko.sdk_listeners = "org.jetbrains.anko:anko-sdk23-listeners:$versions.anko"
+anko.support = "org.jetbrains.anko:anko-support-v4:$versions.anko"
+anko.app_compat = "org.jetbrains.anko:anko-appcompat-v7:$versions.anko"
+anko.design = "org.jetbrains.anko:anko-design:$versions.anko"
+anko.design_listners = "org.jetbrains.anko:anko-design-listeners:$versions.anko"
+deps.anko = anko
+
+def smartShow = [:]
+smartShow.all   = "com.github.the-pig-of-jungle.smart-show:all:$versions.smart_show"
+smartShow.toast = "com.github.the-pig-of-jungle.smart-show:toast:$versions.smart_show"
+smartShow.dialog    = "com.github.the-pig-of-jungle.smart-show:dialog:$versions.smart_show"
+smartShow.topbar    = "com.github.the-pig-of-jungle.smart-show:topbar:$versions.smart_show"
+//snackBar需要material库
+smartShow.snackbar  = "com.github.the-pig-of-jungle.smart-show:snackbar:$versions.smart_show"
+deps.smart_show = smartShow
+deps.loading_view   = "com.wang.avi:library:$versions.loading_view"
+
+/*** -------------------- Android start -------------------- ***/
+def lifecycle = [:]
+lifecycle.runtime = "android.arch.lifecycle:runtime:$versions.lifecycle"
+lifecycle.extensions = "android.arch.lifecycle:extensions:$versions.lifecycle"
+lifecycle.java8 = "android.arch.lifecycle:common-java8:$versions.lifecycle"
+lifecycle.compiler = "android.arch.lifecycle:compiler:$versions.lifecycle"
+lifecycle.stream = "android.arch.lifecycle:reactivestreams:$versions.lifecycle"
+deps.lifecycle = lifecycle
+
+def work = [:]
+work.runtime = "android.arch.work:work-runtime:$versions.work"
+work.testing = "android.arch.work:work-testing:$versions.work"
+work.firebase = "android.arch.work:work-firebase:$versions.work"
+work.runtime_ktx = "android.arch.work:work-runtime-ktx:$versions.work"
+deps.work = work
+
+def navigation = [:]
+navigation.safe_args_plugin = "android.arch.navigation:navigation-safe-args-gradle-plugin:$versions.navigation"
+navigation.runtime = "android.arch.navigation:navigation-runtime:$versions.navigation"
+navigation.runtime_ktx = "android.arch.navigation:navigation-runtime-ktx:$versions.navigation"
+navigation.fragment = "android.arch.navigation:navigation-fragment:$versions.navigation"
+navigation.ui = "android.arch.navigation:navigation-ui:$versions.navigation"
+navigation.fragment_ktx = "android.arch.navigation:navigation-fragment-ktx:$versions.navigation"
+navigation.testing_ktx = "android.arch.navigation:navigation-testing-ktx:$versions.navigation"
+navigation.testing= "android.arch.navigation:navigation-testing:$versions.navigation"
+deps.navigation = navigation
+
+def arch_core = [:]
+arch_core.testing = "android.arch.core:core-testing:$versions.arch_core"
+deps.arch_core = arch_core
+
+def room = [:]
+room.runtime = "android.arch.persistence.room:runtime:$versions.room"
+room.compiler = "android.arch.persistence.room:compiler:$versions.room"
+room.rxjava2 = "android.arch.persistence.room:rxjava2:$versions.room"
+room.testing = "android.arch.persistence.room:testing:$versions.room"
+deps.room = room
+/*** -------------------- Android end -------------------- ***/
+
+/*** -------------------- Androidx start -------------------- ***/
+
+deps.material = "com.google.android.material:material:$versions.material"
+
+def core_x = [:]
+//ust ktx
+core_x.core =  "androidx.core:core:$versions.core_x"
+core_x.ktx  = "androidx.core:core-ktx:$versions.core_x"
+deps.core_x = core_x
+
+def androidx = [:]
+// minSdkVersion is 21 and higher multidex is enabled by default.No need to include
+androidx.multidex       = "androidx.multidex:multidex:$versions.multidex_x"
+androidx.annotation     = "androidx.annotation:annotation:$versions.annotation_x"
+androidx.appcompat      = "androidx.appcompat:appcompat:$versions.appcompat_x"
+androidx.cardview       = "androidx.cardview:cardview:$versions.cardview_x"
+androidx.constraintlayout   = "androidx.constraintlayout:constraintlayout:$versions.constraintlayout_x"
+androidx.gridlayout     = "androidx.gridlayout:gridlayout:$versions.gridlayout_x"
+androidx.preference     = "androidx.preference:preference:$versions.preference_x"
+androidx.preference_ktx = "androidx.preference:preference-ktx:$versions.preference_x"
+androidx.recyclerview   = "androidx.recyclerview:recyclerview:$versions.recyclerview_x"
+androidx.recyclerview_selection = "androidx.recyclerview:recyclerview-selection:$versions.recyclerview_x"
+androidx.viewpager2     = "androidx.viewpager2:viewpager2:$versions.viewpager2"
+androidx.ui_core        = "androidx.ui:ui-core:$versions.ui_x"
+androidx.ui_tooling     = "androidx.ui:ui-tooling:$versions.ui_x"
+androidx.ui_layout      = "androidx.ui:ui-layout:$versions.ui_x"
+androidx.ui_material    = "androidx.ui:ui-material:$versions.ui_x"
+androidx.junit          = "androidx.test.ext:junit:$versions.junit_x"
+androidx.espresso       = "androidx.test.espresso:espresso-core:$versions.espresso_x"
+deps.androidx = androidx
+
+def fragment_x = [:]
+fragment_x.core = "androidx.fragment:fragment:$versions.fragment_x"
+fragment_x.ktx = "androidx.fragment:fragment-ktx:$versions.fragment_x"
+deps.fragment_x = fragment_x
+
+def paging_x = [:]
+paging_x.runtime = "androidx.paging:paging-runtime:$versions.paging_x"
+paging_x.rxjava2 = "androidx.paging:paging-rxjava2:$versions.paging_x"
+paging_x.test = "androidx.paging:paging-common:$versions.paging_x"
+deps.paging_x = paging_x
+
+def room_x = [:]
+room_x.runtime = "androidx.room:room-runtime:$versions.room_x"
+//kapt
+room_x.compiler = "androidx.room:room-compiler:$versions.room_x"
+room_x.ktx = "androidx.room:room-ktx:$versions.room_x"
+room_x.rxjava2 = "androidx.room:room-rxjava2:$versions.room_x"
+// optional - Guava support for Room, including Optional and ListenableFuture
+room_x.guava = "androidx.room:room-guava:$versions.room_x"
+room_x.testing = "androidx.room:room-testing:$versions.room_x"
+deps.room_x = room_x
+
+def lifecycle_x = [:]
+// ViewModel
+lifecycle_x.viewmodel = "androidx.lifecycle:lifecycle-viewmodel-ktx:$versions.lifecycle_x"
+// LiveData
+lifecycle_x.livedata  = "androidx.lifecycle:lifecycle-livedata-ktx:$versions.lifecycle_x"
+// Lifecycle only (without ViewModel or LiveData)
+lifecycle_x.runtime = "androidx.lifecycle:lifecycle-runtime-ktx:$versions.lifecycle_x"
+lifecycle_x.extensions = "androidx.lifecycle:lifecycle-extensions:$versions.lifecycle_x"
+// Saved state module for ViewModel
+lifecycle_x.savestate = "androidx.lifecycle:lifecycle-viewmodel-savedstate:$versions.lifecycle_x"
+// Annotation processor kapt
+lifecycle_x.compiler  = "androidx.lifecycle:lifecycle-compiler:$versions.lifecycle_x"
+// alternately - if using Java8, use the following instead of lifecycle-compiler
+lifecycle_x.java8     = "androidx.lifecycle:lifecycle-common-java8:$versions.lifecycle_x"
+// optional - ReactiveStreams support for LiveData
+lifecycle_x.stream    = "androidx.lifecycle:lifecycle-reactivestreams-ktx:$versions.lifecycle_x"
+// optional - helpers for implementing LifecycleOwner in a Service
+lifecycle_x.service   = "androidx.lifecycle:lifecycle-service:$versions.lifecycle_x"
+// optional - ProcessLifecycleOwner provides a lifecycle for the whole application process
+lifecycle_x.process   = "androidx.lifecycle:lifecycle-process:$versions.lifecycle_x"
+// optional - Test helpers for LiveData testImplementation
+lifecycle_x.test   = "androidx.arch.core:core-testing:$versions.arch_x"
+deps.lifecycle_x = lifecycle_x
+
+def work_x = [:]
+work_x.runtime  = "androidx.work:work-runtime:$versions.work_x"
+work_x.testing  = "androidx.work:work-testing:$versions.work_x"
+work_x.firebase = "androidx.work:work-firebase:$versions.work_x"
+work_x.runtime_ktx = "androidx.work:work-runtime-ktx:$versions.work_x"
+work_x.rx_java  = "androidx.work:work-rxjava2:$versions.work_x"
+work_x.gcm      = "androidx.work:work-gcm:$versions.work_x"
+deps.work_x = work_x
+
+def navigation_x = [:]
+/**
+ * androidx.navigation
+ * androidx.navigation.fragment
+ * androidx.navigation.ui
+ * **/
+//To add Safe Args,include this in top level build.gradle: class ""
+navigation_x.safe_args_plugin = "androidx.navigation:navigation-safe-args-gradle-plugin:2.3.0-beta01"
+navigation_x.runtime        = "androidx.navigation:navigation-runtime:$versions.navigation_x"
+navigation_x.runtime_ktx    = "androidx.navigation:navigation-runtime-ktx:$versions.navigation_x"
+navigation_x.fragment       = "androidx.navigation:navigation-fragment:$versions.navigation_x"
+navigation_x.fragment_ktx   = "androidx.navigation:navigation-fragment-ktx:$versions.navigation_x"
+navigation_x.ui         = "androidx.navigation:navigation-ui:$versions.navigation_x"
+navigation_x.ui_ktx     = "androidx.navigation:navigation-ui-ktx:$versions.navigation_x"
+// Dynamic Feature Module Support
+navigation_x.dynamic = "androidx.navigation:navigation-dynamic-features-fragment:$versions.navigation_x"
+navigation_x.testing_ktx = "androidx.navigation:navigation-testing-ktx:$versions.navigation_x"
+navigation_x.testing= "androidx.navigation:navigation-testing:$versions.navigation_x"
+deps.navigation_x = navigation_x
+
+def camerax = [:]
+camerax.core        = "androidx.camera:camera-core:$versions.camera_x"
+camerax.camera2     = "androidx.camera:camera-camera2:$versions.camera_x"
+camerax.lifecycle   = "androidx.camera:camera-lifecycle:$versions.camera_x"
+camerax.view        = "androidx.camera:camera-view:.0.0-alpha11"
+camerax.extensions  = "androidx.camera:camera-extensions:.0.0-alpha11"
+deps.camerax = camerax
+
+
+def smartRefreshX = [:]
+//核心库.必须依赖
+smartRefreshX.kernel    = "com.scwang.smart:refresh-layout-kernel:$versions.smartRefresh"
+//可选 - 经典刷新头
+smartRefreshX.headerClassics    = "com.scwang.smart:refresh-header-classics:$versions.smartRefresh"
+//可选 - 雷达刷新头
+smartRefreshX.headerRadar    = "com.scwang.smart:refresh-header-radar:$versions.smartRefresh"
+//可选 - 虚拟刷新头
+smartRefreshX.headerFalsify    = "com.scwang.smart:refresh-header-falsify:$versions.smartRefresh"
+//可选 - 谷歌刷新头
+smartRefreshX.headerMaterial    = "com.scwang.smart:refresh-header-material:$versions.smartRefresh"
+//可选 - 耳机刷新头
+smartRefreshX.headerTwoLevel    = "com.scwang.smart:refresh-header-two-level:$versions.smartRefresh"
+//可选 - 球脉冲加载
+smartRefreshX.footerBall    = "com.scwang.smart:refresh-footer-ball:$versions.smartRefresh"
+//可选 - 经典加载
+smartRefreshX.footerClassics    = "com.scwang.smart:refresh-footer-classics:$versions.smartRefresh"
+deps.smartRefreshX = smartRefreshX
+
+/*** -------------------- Androidx end -------------------- ***/
+
+def retrofit = [:]
+retrofit.runtime = "com.squareup.retrofit2:retrofit:$versions.retrofit"
+retrofit.gson = "com.squareup.retrofit2:converter-gson:$versions.retrofit"
+retrofit.mock = "com.squareup.retrofit2:retrofit-mock:$versions.retrofit"
+retrofit.adapter2 = "com.squareup.retrofit2:adapter-rxjava2:$versions.retrofit"
+retrofit.adapter3 = "com.squareup.retrofit2:adapter-rxjava3:$versions.retrofit"
+deps.retrofit = retrofit
+deps.okhttp_logging_interceptor = "com.squareup.okhttp3:logging-interceptor:${versions.okhttp_logging_interceptor}"
+
+def dagger = [:]
+dagger.runtime = "com.google.dagger:dagger:$versions.dagger"
+dagger.compiler = "com.google.dagger:dagger-compiler:$versions.dagger"
+dagger.android = "com.google.dagger:dagger-android:$versions.dagger"
+dagger.android_support = "com.google.dagger:dagger-android-support:$versions.dagger"
+dagger.android_compiler = "com.google.dagger:dagger-android-processor:$versions.dagger"
+
+deps.dagger = dagger
+
+def hilt = [:]
+//子模块中apply的plugin
+hilt.apply_plugin = "dagger.hilt.android.plugin"
+hilt.android    = "com.google.dagger:hilt-android:$versions.hilt"
+hilt.android_compiler   = "com.google.dagger:hilt-android-compiler:$versions.hilt"
+hilt.core   = "com.google.dagger:hilt-core:$versions.hilt"
+hilt.compiler   = "com.google.dagger:hilt-compiler:$versions.hilt"
+hilt.plugin  = "com.google.dagger:hilt-android-gradle-plugin:$versions.hilt"
+hilt.viewmodel  = "androidx.hilt:hilt-lifecycle-viewmodel:$versions.hilt_jetpack"
+hilt.viewmodel_compiler = "androidx.hilt:hilt-compiler:$versions.hilt_jetpack"
+deps.hilt = hilt
+
+def espresso = [:]
+espresso.core = "com.android.support.test.espresso:espresso-core:$versions.espresso"
+espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$versions.espresso"
+espresso.intents = "com.android.support.test.espresso:espresso-intents:$versions.espresso"
+deps.espresso = espresso
+
+def atsl = [:]
+atsl.runner = "com.android.support.test:runner:$versions.atsl_runner"
+atsl.rules = "com.android.support.test:rules:$versions.atsl_runner"
+deps.atsl = atsl
+
+def mockito = [:]
+mockito.core = "org.mockito:mockito-core:$versions.mockito"
+mockito.all = "org.mockito:mockito-all:$versions.mockito_all"
+deps.mockito = mockito
+
+
+def glide = [:]
+glide.runtime = "com.github.bumptech.glide:glide:$versions.glide"
+glide.compiler = "com.github.bumptech.glide:compiler:$versions.glide"
+deps.glide = glide
+
+deps.dexmaker = "com.linkedin.dexmaker:dexmaker-mockito:$versions.dexmaker"
+
+deps.timber = "com.jakewharton.timber:timber:$versions.timber"
+deps.rxjava2 = "io.reactivex.rxjava2:rxjava:$versions.rxjava2"
+deps.rxjava3 = "io.reactivex.rxjava3:rxjava:$versions.rxjava3"
+deps.rx_android = "io.reactivex.rxjava2:rxandroid:$versions.rx_android"
+deps.rx_android3 = "io.reactivex.rxjava3:rxandroid:$versions.rx_android3"
+deps.junit = "junit:junit:$versions.junit"
+deps.eventbus = "org.greenrobot:eventbus:$versions.eventbus"
+deps.permission = "com.yanzhenjie:permission:$versions.permission"
+deps.swipe_recycler = "com.yanzhenjie.recyclerview:x:$versions.swipe_recycler"
+
+deps.mock_web_server = "com.squareup.okhttp3:mockwebserver:$versions.mockwebserver"
+deps.hamcrest = "org.hamcrest:hamcrest-all:$versions.hamcrest"
+ext.deps = deps
+
+def ijkplayer = [:]
+ijkplayer.java = "tv.danmaku.ijk.media:ijkplayer-java:$versions.ijkplayer"
+ijkplayer.armv7a = "tv.danmaku.ijk.media:ijkplayer-armv7a:$versions.ijkplayer"
+ijkplayer.arm64 = "tv.danmaku.ijk.media:ijkplayer-arm64:$versions.ijkplayer"
+deps.ijkplayer = ijkplayer
+
+def bugly = [:]
+bugly.runtime = "com.tencent.bugly:crashreport:latest.release"
+bugly.native = "com.tencent.bugly:nativecrashreport:latest.release"
+deps.bugly = bugly
+
+
+def rxlifecycle = [:]
+rxlifecycle.core    = "com.trello.rxlifecycle4:rxlifecycle:$versions.rxlifecycle"
+// If you want to use Kotlin syntax
+rxlifecycle.ktx    = "com.trello.rxlifecycle4:rxlifecycle-kotlin:$versions.rxlifecycle"
+// If you want to use Kotlin syntax with Android Lifecycle
+rxlifecycle.android_ktx    = "com.trello.rxlifecycle4:rxlifecycle-android-lifecycle-kotlin:$versions.rxlifecycle"
+// If you want to bind to Android-specific lifecycle
+rxlifecycle.android = "com.trello.rxlifecycle4:rxlifecycle-android:$versions.rxlifecycle"
+// If you want pre-written Activities and Fragments you can subclass as providers
+rxlifecycle.components = "com.trello.rxlifecycle4:rxlifecycle-components:$versions.rxlifecycle"
+// If you want pre-written support preference Fragments you can subclass as providers
+rxlifecycle.components_preference = "com.trello.rxlifecycle4:rxlifecycle-components-preference:$versions.rxlifecycle"
+// If you want to use Android Lifecycle for providers
+rxlifecycle.android_lifecycle = "com.trello.rxlifecycle4:rxlifecycle-android-lifecycle:$versions.rxlifecycle"
+deps.rxlifecycle = rxlifecycle
+
+def autodispose = [:]
+autodispose.core = "com.uber.autodispose2:autodispose:$versions.autodispose"
+autodispose.android = "com.uber.autodispose2:autodispose-android:$versions.autodispose"
+autodispose.lifecycle = "com.uber.autodispose2:autodispose-lifecycle:$versions.autodispose"
+autodispose.android_lifecycle = "com.uber.autodispose2:autodispose-androidx-lifecycle:$versions.autodispose"
+deps.autodispose = autodispose
+
+deps.lite_pal = "org.litepal.guolindev:core:$versions.lite_pal"
+deps.lite_pal_old = "org.litepal.android:java:$versions.lite_pal_old"
+
+deps.gson = "com.google.code.gson:gson:$versions.gson"
+
+ext.deps = deps
+
+/*static def addRepos(RepositoryHandler handler) {
+    handler.google()
+    handler.jcenter()
+    handler.maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+ext.addRepos = this.&addRepos*/
