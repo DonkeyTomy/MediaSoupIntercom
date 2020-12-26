@@ -217,35 +217,28 @@ static ScopedJavaLocalRef<jobject> JNI_SendTransport_Produce(
 	{
 		auto listener = new ProducerListenerJni(env, j_listener);
 		auto track    = reinterpret_cast<webrtc::MediaStreamTrackInterface*>(j_track);
-        MSC_ERROR("1");
 		std::vector<webrtc::RtpEncodingParameters> encodings;
 		if (!j_encodings.is_null())
 		{
-			MSC_ERROR("NULL 1");
 			encodings = webrtc::JavaToNativeVector<webrtc::RtpEncodingParameters>(
 			  env,
 			  webrtc::JavaParamRef<jobjectArray>(j_encodings.obj()),
 			  &webrtc::jni::JavaToNativeRtpEncodingParameters);
 		}
-        MSC_ERROR("2");
 		json codecOptions = json::object();
 		if (!j_codecOptions.is_null())
 		{
-			MSC_ERROR("NULL 2");
 			codecOptions = json::parse(JavaToNativeString(env, j_codecOptions));
 		}
-        MSC_ERROR("3");
 		json appData = json::object();
 		if (!j_appData.is_null())
 		{
-			MSC_ERROR("NULL 3");
 			appData = json::parse(JavaToNativeString(env, j_appData));
 		}
-        MSC_ERROR("4");
 		auto transport = (reinterpret_cast<OwnedSendTransport*>(j_transport))->transport();
-        MSC_ERROR("5");
+		MSC_WARN("Produce");
 		auto producer  = transport->Produce(listener, track, &encodings, &codecOptions, appData);
-        MSC_ERROR("6");
+		MSC_WARN("NativeToJavaProducer");
 		return NativeToJavaProducer(env, producer, listener);
 	}
 	catch (const std::exception& e)
