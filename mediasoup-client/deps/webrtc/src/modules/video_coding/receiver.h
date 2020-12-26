@@ -20,6 +20,7 @@
 #include "modules/video_coding/jitter_buffer.h"
 #include "modules/video_coding/packet.h"
 #include "modules/video_coding/timing.h"
+#include "rtc_base/critical_section.h"
 
 namespace webrtc {
 

@@ -29,10 +29,6 @@ class FakePeriodicVideoTrackSource : public VideoTrackSource {
 
   ~FakePeriodicVideoTrackSource() = default;
 
-  const FakePeriodicVideoSource& fake_periodic_source() const {
-    return source_;
-  }
-
  protected:
   rtc::VideoSourceInterface<VideoFrame>* source() override { return &source_; }
 

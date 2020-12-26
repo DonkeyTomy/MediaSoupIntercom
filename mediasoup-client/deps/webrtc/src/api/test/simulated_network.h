@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "absl/types/optional.h"
+#include "rtc_base/critical_section.h"
 #include "rtc_base/random.h"
 #include "rtc_base/thread_annotations.h"
 

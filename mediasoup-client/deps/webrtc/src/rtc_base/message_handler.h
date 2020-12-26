@@ -21,27 +21,17 @@ namespace rtc {
 
 struct Message;
 
-// MessageQueue/Thread Messages get dispatched via the MessageHandler interface.
+// Messages get dispatched to a MessageHandler
 class RTC_EXPORT MessageHandler {
  public:
-  virtual ~MessageHandler() {}
+  virtual ~MessageHandler();
   virtual void OnMessage(Message* msg) = 0;
-};
-
-// Warning: Provided for backwards compatibility.
-//
-// This class performs expensive cleanup in the dtor that will affect all
-// instances of Thread (and their pending message queues) and will block the
-// current thread as well as all other threads.
-class RTC_EXPORT MessageHandlerAutoCleanup : public MessageHandler {
- public:
-  ~MessageHandlerAutoCleanup() override;
 
  protected:
-  MessageHandlerAutoCleanup();
+  MessageHandler() {}
 
  private:
-  RTC_DISALLOW_COPY_AND_ASSIGN(MessageHandlerAutoCleanup);
+  RTC_DISALLOW_COPY_AND_ASSIGN(MessageHandler);
 };
 
 }  // namespace rtc

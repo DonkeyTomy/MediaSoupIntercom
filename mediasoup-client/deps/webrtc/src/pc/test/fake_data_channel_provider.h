@@ -13,11 +13,10 @@
 
 #include <set>
 
-#include "pc/sctp_data_channel.h"
+#include "pc/data_channel.h"
 #include "rtc_base/checks.h"
 
-class FakeDataChannelProvider
-    : public webrtc::SctpDataChannelProviderInterface {
+class FakeDataChannelProvider : public webrtc::DataChannelProviderInterface {
  public:
   FakeDataChannelProvider()
       : send_blocked_(false),
@@ -45,7 +44,7 @@ class FakeDataChannelProvider
     return true;
   }
 
-  bool ConnectDataChannel(webrtc::SctpDataChannel* data_channel) override {
+  bool ConnectDataChannel(webrtc::DataChannel* data_channel) override {
     RTC_CHECK(connected_channels_.find(data_channel) ==
               connected_channels_.end());
     if (!transport_available_) {
@@ -56,7 +55,7 @@ class FakeDataChannelProvider
     return true;
   }
 
-  void DisconnectDataChannel(webrtc::SctpDataChannel* data_channel) override {
+  void DisconnectDataChannel(webrtc::DataChannel* data_channel) override {
     RTC_CHECK(connected_channels_.find(data_channel) !=
               connected_channels_.end());
     RTC_LOG(LS_INFO) << "DataChannel disconnected " << data_channel;
@@ -78,7 +77,7 @@ class FakeDataChannelProvider
     recv_ssrcs_.erase(sid);
     // Unlike the real SCTP transport, act like the closing procedure finished
     // instantly, doing the same snapshot thing as below.
-    for (webrtc::SctpDataChannel* ch : std::set<webrtc::SctpDataChannel*>(
+    for (webrtc::DataChannel* ch : std::set<webrtc::DataChannel*>(
              connected_channels_.begin(), connected_channels_.end())) {
       if (connected_channels_.count(ch)) {
         ch->OnClosingProcedureComplete(sid);
@@ -94,12 +93,12 @@ class FakeDataChannelProvider
     if (!blocked) {
       // Take a snapshot of the connected channels and check to see whether
       // each value is still in connected_channels_ before calling
-      // OnTransportReady().  This avoids problems where the set gets modified
-      // in response to OnTransportReady().
-      for (webrtc::SctpDataChannel* ch : std::set<webrtc::SctpDataChannel*>(
+      // OnChannelReady().  This avoids problems where the set gets modified
+      // in response to OnChannelReady().
+      for (webrtc::DataChannel* ch : std::set<webrtc::DataChannel*>(
                connected_channels_.begin(), connected_channels_.end())) {
         if (connected_channels_.count(ch)) {
-          ch->OnTransportReady(true);
+          ch->OnChannelReady(true);
         }
       }
     }
@@ -117,10 +116,10 @@ class FakeDataChannelProvider
     RTC_CHECK(transport_available_);
     ready_to_send_ = ready;
     if (ready) {
-      std::set<webrtc::SctpDataChannel*>::iterator it;
+      std::set<webrtc::DataChannel*>::iterator it;
       for (it = connected_channels_.begin(); it != connected_channels_.end();
            ++it) {
-        (*it)->OnTransportReady(true);
+        (*it)->OnChannelReady(true);
       }
     }
   }
@@ -131,7 +130,7 @@ class FakeDataChannelProvider
     return last_send_data_params_;
   }
 
-  bool IsConnected(webrtc::SctpDataChannel* data_channel) const {
+  bool IsConnected(webrtc::DataChannel* data_channel) const {
     return connected_channels_.find(data_channel) != connected_channels_.end();
   }
 
@@ -149,7 +148,7 @@ class FakeDataChannelProvider
   bool transport_available_;
   bool ready_to_send_;
   bool transport_error_;
-  std::set<webrtc::SctpDataChannel*> connected_channels_;
+  std::set<webrtc::DataChannel*> connected_channels_;
   std::set<uint32_t> send_ssrcs_;
   std::set<uint32_t> recv_ssrcs_;
 };

@@ -19,6 +19,7 @@
 #include "api/rtp_headers.h"
 #include "api/video/color_space.h"
 #include "api/video/video_content_type.h"
+#include "api/video/video_frame_marking.h"
 #include "api/video/video_rotation.h"
 #include "api/video/video_timing.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
@@ -148,7 +149,7 @@ class VideoOrientation {
 
 class PlayoutDelayLimits {
  public:
-  using value_type = VideoPlayoutDelay;
+  using value_type = PlayoutDelay;
   static constexpr RTPExtensionType kId = kRtpExtensionPlayoutDelay;
   static constexpr uint8_t kValueSizeBytes = 3;
   static constexpr const char kUri[] =
@@ -162,10 +163,10 @@ class PlayoutDelayLimits {
   static constexpr int kMaxMs = 0xfff * kGranularityMs;  // 40950.
 
   static bool Parse(rtc::ArrayView<const uint8_t> data,
-                    VideoPlayoutDelay* playout_delay);
-  static size_t ValueSize(const VideoPlayoutDelay&) { return kValueSizeBytes; }
+                    PlayoutDelay* playout_delay);
+  static size_t ValueSize(const PlayoutDelay&) { return kValueSizeBytes; }
   static bool Write(rtc::ArrayView<uint8_t> data,
-                    const VideoPlayoutDelay& playout_delay);
+                    const PlayoutDelay& playout_delay);
 };
 
 class VideoContentTypeExtension {
@@ -214,6 +215,23 @@ class VideoTimingExtension {
   static bool Write(rtc::ArrayView<uint8_t> data,
                     uint16_t time_delta_ms,
                     uint8_t offset);
+};
+
+class FrameMarkingExtension {
+ public:
+  using value_type = FrameMarking;
+  static constexpr RTPExtensionType kId = kRtpExtensionFrameMarking;
+  static constexpr const char kUri[] =
+      "http://tools.ietf.org/html/draft-ietf-avtext-framemarking-07";
+
+  static bool Parse(rtc::ArrayView<const uint8_t> data,
+                    FrameMarking* frame_marking);
+  static size_t ValueSize(const FrameMarking& frame_marking);
+  static bool Write(rtc::ArrayView<uint8_t> data,
+                    const FrameMarking& frame_marking);
+
+ private:
+  static bool IsScalable(uint8_t temporal_id, uint8_t layer_id);
 };
 
 class ColorSpaceExtension {

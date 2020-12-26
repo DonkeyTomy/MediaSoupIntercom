@@ -20,6 +20,7 @@
 #include "call/bitrate_allocator.h"
 #include "call/video_receive_stream.h"
 #include "call/video_send_stream.h"
+#include "rtc_base/critical_section.h"
 #include "rtc_base/event.h"
 #include "rtc_base/task_queue.h"
 #include "rtc_base/thread_checker.h"
@@ -77,9 +78,6 @@ class VideoSendStream : public webrtc::VideoSendStream {
       const std::vector<bool> active_layers) override;
   void Start() override;
   void Stop() override;
-
-  void AddAdaptationResource(rtc::scoped_refptr<Resource> resource) override;
-  std::vector<rtc::scoped_refptr<Resource>> GetAdaptationResources() override;
 
   void SetSource(rtc::VideoSourceInterface<webrtc::VideoFrame>* source,
                  const DegradationPreference& degradation_preference) override;

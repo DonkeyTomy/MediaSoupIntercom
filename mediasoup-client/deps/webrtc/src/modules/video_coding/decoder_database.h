@@ -20,11 +20,14 @@ namespace webrtc {
 
 struct VCMDecoderMapItem {
  public:
-  VCMDecoderMapItem(VideoCodec* settings, int number_of_cores);
+  VCMDecoderMapItem(VideoCodec* settings,
+                    int number_of_cores,
+                    bool require_key_frame);
   ~VCMDecoderMapItem();
 
   std::unique_ptr<VideoCodec> settings;
   int number_of_cores;
+  bool require_key_frame;
 };
 
 struct VCMExtDecoderMapItem {
@@ -45,9 +48,9 @@ class VCMDecoderDataBase {
   void RegisterExternalDecoder(VideoDecoder* external_decoder,
                                uint8_t payload_type);
 
-  bool RegisterReceiveCodec(uint8_t payload_type,
-                            const VideoCodec* receive_codec,
-                            int number_of_cores);
+  bool RegisterReceiveCodec(const VideoCodec* receive_codec,
+                            int number_of_cores,
+                            bool require_key_frame);
   bool DeregisterReceiveCodec(uint8_t payload_type);
 
   // Returns a decoder specified by frame.PayloadType. The decoded frame
@@ -76,7 +79,6 @@ class VCMDecoderDataBase {
   const VCMExtDecoderMapItem* FindExternalDecoderItem(
       uint8_t payload_type) const;
 
-  uint8_t current_payload_type_;  // Corresponding to receive_codec_.
   VideoCodec receive_codec_;
   std::unique_ptr<VCMGenericDecoder> ptr_decoder_;
   DecoderMap dec_map_;

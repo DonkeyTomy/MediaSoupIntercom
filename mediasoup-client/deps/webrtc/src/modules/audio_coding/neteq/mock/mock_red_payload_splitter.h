@@ -18,12 +18,10 @@ namespace webrtc {
 
 class MockRedPayloadSplitter : public RedPayloadSplitter {
  public:
-  MOCK_METHOD(bool, SplitRed, (PacketList * packet_list), (override));
-  MOCK_METHOD(void,
-              CheckRedPayloads,
-              (PacketList * packet_list,
-               const DecoderDatabase& decoder_database),
-              (override));
+  MOCK_METHOD1(SplitRed, bool(PacketList* packet_list));
+  MOCK_METHOD2(CheckRedPayloads,
+               void(PacketList* packet_list,
+                    const DecoderDatabase& decoder_database));
 };
 
 }  // namespace webrtc

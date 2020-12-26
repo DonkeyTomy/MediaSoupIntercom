@@ -19,7 +19,7 @@
 #include "api/task_queue/task_queue_base.h"
 #include "api/units/time_delta.h"
 #include "api/units/timestamp.h"
-#include "system_wrappers/include/clock.h"
+#include "rtc_base/synchronization/sequence_checker.h"
 
 namespace webrtc {
 
@@ -28,9 +28,7 @@ class RepeatingTaskHandle;
 namespace webrtc_repeating_task_impl {
 class RepeatingTaskBase : public QueuedTask {
  public:
-  RepeatingTaskBase(TaskQueueBase* task_queue,
-                    TimeDelta first_delay,
-                    Clock* clock);
+  RepeatingTaskBase(TaskQueueBase* task_queue, TimeDelta first_delay);
   ~RepeatingTaskBase() override;
 
   void Stop();
@@ -41,10 +39,16 @@ class RepeatingTaskBase : public QueuedTask {
   bool Run() final;
 
   TaskQueueBase* const task_queue_;
-  Clock* const clock_;
   // This is always finite, except for the special case where it's PlusInfinity
   // to signal that the task should stop.
-  Timestamp next_run_time_ RTC_GUARDED_BY(task_queue_);
+  Timestamp next_run_time_ RTC_GUARDED_BY(sequence_checker_);
+  // We use a SequenceChecker to check for correct usage instead of using
+  // RTC_DCHECK_RUN_ON(task_queue_). This is to work around a compatibility
+  // issue with some TQ implementations such as rtc::Thread that don't
+  // consistently set themselves as the 'current' TQ when running tasks.
+  // The SequenceChecker detects those implementations differently but gives
+  // the same effect as far as thread safety goes.
+  SequenceChecker sequence_checker_;
 };
 
 // The template closure pattern is based on rtc::ClosureTask.
@@ -53,9 +57,8 @@ class RepeatingTaskImpl final : public RepeatingTaskBase {
  public:
   RepeatingTaskImpl(TaskQueueBase* task_queue,
                     TimeDelta first_delay,
-                    Closure&& closure,
-                    Clock* clock)
-      : RepeatingTaskBase(task_queue, first_delay, clock),
+                    Closure&& closure)
+      : RepeatingTaskBase(task_queue, first_delay),
         closure_(std::forward<Closure>(closure)) {
     static_assert(
         std::is_same<TimeDelta,
@@ -95,11 +98,10 @@ class RepeatingTaskHandle {
   // repeated task is owned by the TaskQueue.
   template <class Closure>
   static RepeatingTaskHandle Start(TaskQueueBase* task_queue,
-                                   Closure&& closure,
-                                   Clock* clock = Clock::GetRealTimeClock()) {
+                                   Closure&& closure) {
     auto repeating_task = std::make_unique<
         webrtc_repeating_task_impl::RepeatingTaskImpl<Closure>>(
-        task_queue, TimeDelta::Zero(), std::forward<Closure>(closure), clock);
+        task_queue, TimeDelta::Zero(), std::forward<Closure>(closure));
     auto* repeating_task_ptr = repeating_task.get();
     task_queue->PostTask(std::move(repeating_task));
     return RepeatingTaskHandle(repeating_task_ptr);
@@ -108,14 +110,12 @@ class RepeatingTaskHandle {
   // DelayedStart is equivalent to Start except that the first invocation of the
   // closure will be delayed by the given amount.
   template <class Closure>
-  static RepeatingTaskHandle DelayedStart(
-      TaskQueueBase* task_queue,
-      TimeDelta first_delay,
-      Closure&& closure,
-      Clock* clock = Clock::GetRealTimeClock()) {
+  static RepeatingTaskHandle DelayedStart(TaskQueueBase* task_queue,
+                                          TimeDelta first_delay,
+                                          Closure&& closure) {
     auto repeating_task = std::make_unique<
         webrtc_repeating_task_impl::RepeatingTaskImpl<Closure>>(
-        task_queue, first_delay, std::forward<Closure>(closure), clock);
+        task_queue, first_delay, std::forward<Closure>(closure));
     auto* repeating_task_ptr = repeating_task.get();
     task_queue->PostDelayedTask(std::move(repeating_task), first_delay.ms());
     return RepeatingTaskHandle(repeating_task_ptr);

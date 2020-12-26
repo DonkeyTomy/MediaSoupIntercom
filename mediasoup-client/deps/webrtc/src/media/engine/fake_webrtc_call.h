@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "api/transport/field_trial_based_config.h"
 #include "api/video/video_frame.h"
 #include "call/audio_receive_stream.h"
 #include "call/audio_send_stream.h"
@@ -105,8 +104,7 @@ class FakeAudioReceiveStream final : public webrtc::AudioReceiveStream {
   void Start() override { started_ = true; }
   void Stop() override { started_ = false; }
 
-  webrtc::AudioReceiveStream::Stats GetStats(
-      bool get_and_clear_legacy_stats) const override;
+  webrtc::AudioReceiveStream::Stats GetStats() const override;
   void SetSink(webrtc::AudioSinkInterface* sink) override;
   void SetGain(float gain) override;
   bool SetBaseMinimumPlayoutDelayMs(int delay_ms) override {
@@ -175,10 +173,6 @@ class FakeVideoSendStream final
       const std::vector<bool> active_layers) override;
   void Start() override;
   void Stop() override;
-  void AddAdaptationResource(
-      rtc::scoped_refptr<webrtc::Resource> resource) override;
-  std::vector<rtc::scoped_refptr<webrtc::Resource>> GetAdaptationResources()
-      override;
   void SetSource(
       rtc::VideoSourceInterface<webrtc::VideoFrame>* source,
       const webrtc::DegradationPreference& degradation_preference) override;
@@ -347,9 +341,6 @@ class FakeCall final : public webrtc::Call, public webrtc::PacketReceiver {
   void DestroyFlexfecReceiveStream(
       webrtc::FlexfecReceiveStream* receive_stream) override;
 
-  void AddAdaptationResource(
-      rtc::scoped_refptr<webrtc::Resource> resource) override;
-
   webrtc::PacketReceiver* Receiver() override;
 
   DeliveryStatus DeliverPacket(webrtc::MediaType media_type,
@@ -362,10 +353,6 @@ class FakeCall final : public webrtc::Call, public webrtc::PacketReceiver {
   }
 
   webrtc::Call::Stats GetStats() const override;
-
-  const webrtc::WebRtcKeyValueConfig& trials() const override {
-    return trials_;
-  }
 
   void SignalChannelNetworkState(webrtc::MediaType media,
                                  webrtc::NetworkState state) override;
@@ -390,7 +377,6 @@ class FakeCall final : public webrtc::Call, public webrtc::PacketReceiver {
 
   int num_created_send_streams_;
   int num_created_receive_streams_;
-  webrtc::FieldTrialBasedConfig trials_;
 };
 
 }  // namespace cricket

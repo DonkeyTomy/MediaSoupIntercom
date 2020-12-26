@@ -26,9 +26,9 @@
 #include "modules/audio_coding/include/audio_coding_module.h"
 #include "modules/rtp_rtcp/include/receive_statistics.h"
 #include "modules/rtp_rtcp/include/remote_ntp_time_estimator.h"
+#include "modules/rtp_rtcp/include/rtp_rtcp.h"
 #include "modules/rtp_rtcp/source/rtp_packet_received.h"
-#include "modules/rtp_rtcp/source/rtp_rtcp_interface.h"
-#include "rtc_base/synchronization/mutex.h"
+#include "rtc_base/critical_section.h"
 #include "rtc_base/time_utils.h"
 
 namespace webrtc {
@@ -44,14 +44,14 @@ namespace webrtc {
 // smaller footprint.
 class AudioIngress : public AudioMixer::Source {
  public:
-  AudioIngress(RtpRtcpInterface* rtp_rtcp,
+  AudioIngress(RtpRtcp* rtp_rtcp,
                Clock* clock,
                ReceiveStatistics* receive_statistics,
                rtc::scoped_refptr<AudioDecoderFactory> decoder_factory);
   ~AudioIngress() override;
 
   // Start or stop receiving operation of AudioIngress.
-  bool StartPlay();
+  void StartPlay() { playing_ = true; }
   void StopPlay() {
     playing_ = false;
     output_audio_level_.ResetLevelFullRange();
@@ -68,14 +68,12 @@ class AudioIngress : public AudioMixer::Source {
   void ReceivedRTPPacket(rtc::ArrayView<const uint8_t> rtp_packet);
   void ReceivedRTCPPacket(rtc::ArrayView<const uint8_t> rtcp_packet);
 
-  // See comments on LevelFullRange, TotalEnergy, TotalDuration from
-  // audio/audio_level.h.
-  int GetOutputAudioLevel() const {
+  // Retrieve highest speech output level in last 100 ms.  Note that
+  // this isn't RMS but absolute raw audio level on int16_t sample unit.
+  // Therefore, the return value will vary between 0 ~ 0xFFFF. This type of
+  // value may be useful to be used for measuring active speaker gauge.
+  int GetSpeechOutputLevelFullRange() const {
     return output_audio_level_.LevelFullRange();
-  }
-  double GetOutputTotalEnergy() { return output_audio_level_.TotalEnergy(); }
-  double GetOutputTotalDuration() {
-    return output_audio_level_.TotalDuration();
   }
 
   // Returns network round trip time (RTT) measued by RTCP exchange with
@@ -84,8 +82,12 @@ class AudioIngress : public AudioMixer::Source {
 
   NetworkStatistics GetNetworkStatistics() const {
     NetworkStatistics stats;
-    acm_receiver_.GetNetworkStatistics(&stats,
-                                       /*get_and_clear_legacy_stats=*/false);
+    acm_receiver_.GetNetworkStatistics(&stats);
+    return stats;
+  }
+  AudioDecodingCallStats GetDecodingStatistics() const {
+    AudioDecodingCallStats stats;
+    acm_receiver_.GetDecodingCallStatistics(&stats);
     return stats;
   }
 
@@ -120,8 +122,8 @@ class AudioIngress : public AudioMixer::Source {
   // Synchronizaton is handled internally by ReceiveStatistics.
   ReceiveStatistics* const rtp_receive_statistics_;
 
-  // Synchronizaton is handled internally by RtpRtcpInterface.
-  RtpRtcpInterface* const rtp_rtcp_;
+  // Synchronizaton is handled internally by RtpRtcp.
+  RtpRtcp* const rtp_rtcp_;
 
   // Synchronizaton is handled internally by acm2::AcmReceiver.
   acm2::AcmReceiver acm_receiver_;
@@ -129,7 +131,7 @@ class AudioIngress : public AudioMixer::Source {
   // Synchronizaton is handled internally by voe::AudioLevel.
   voe::AudioLevel output_audio_level_;
 
-  Mutex lock_;
+  rtc::CriticalSection lock_;
 
   RemoteNtpTimeEstimator ntp_estimator_ RTC_GUARDED_BY(lock_);
 

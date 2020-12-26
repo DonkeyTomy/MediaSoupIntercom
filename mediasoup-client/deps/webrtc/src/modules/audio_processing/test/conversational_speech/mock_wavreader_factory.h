@@ -36,10 +36,8 @@ class MockWavReaderFactory : public WavReaderAbstractFactory {
   explicit MockWavReaderFactory(const Params& default_params);
   ~MockWavReaderFactory();
 
-  MOCK_METHOD(std::unique_ptr<WavReaderInterface>,
-              Create,
-              (const std::string&),
-              (const, override));
+  MOCK_CONST_METHOD1(Create,
+                     std::unique_ptr<WavReaderInterface>(const std::string&));
 
  private:
   // Creates a MockWavReader instance using the parameters in

@@ -14,7 +14,7 @@
 #include "api/video/video_stream_encoder_observer.h"
 #include "call/adaptation/encoder_settings.h"
 #include "call/adaptation/video_stream_input_state.h"
-#include "rtc_base/synchronization/mutex.h"
+#include "rtc_base/critical_section.h"
 
 namespace webrtc {
 
@@ -22,18 +22,17 @@ class VideoStreamInputStateProvider {
  public:
   VideoStreamInputStateProvider(
       VideoStreamEncoderObserver* frame_rate_provider);
-  virtual ~VideoStreamInputStateProvider();
 
   void OnHasInputChanged(bool has_input);
   void OnFrameSizeObserved(int frame_size_pixels);
   void OnEncoderSettingsChanged(EncoderSettings encoder_settings);
 
-  virtual VideoStreamInputState InputState();
+  VideoStreamInputState InputState();
 
  private:
-  Mutex mutex_;
+  mutable rtc::CriticalSection crit_;
   VideoStreamEncoderObserver* const frame_rate_provider_;
-  VideoStreamInputState input_state_ RTC_GUARDED_BY(mutex_);
+  VideoStreamInputState input_state_ RTC_GUARDED_BY(crit_);
 };
 
 }  // namespace webrtc

@@ -27,7 +27,6 @@
 #include "api/stats_types.h"
 #include "p2p/base/port.h"
 #include "pc/peer_connection_internal.h"
-#include "pc/stats_collector_interface.h"
 #include "rtc_base/network_constants.h"
 #include "rtc_base/ssl_certificate.h"
 
@@ -45,7 +44,7 @@ const char* AdapterTypeToStatsType(rtc::AdapterType type);
 // A mapping between track ids and their StatsReport.
 typedef std::map<std::string, StatsReport*> TrackIdMap;
 
-class StatsCollector : public StatsCollectorInterface {
+class StatsCollector {
  public:
   // The caller is responsible for ensuring that the pc outlives the
   // StatsCollector instance.
@@ -58,13 +57,11 @@ class StatsCollector : public StatsCollectorInterface {
   void AddTrack(MediaStreamTrackInterface* track);
 
   // Adds a local audio track that is used for getting some voice statistics.
-  void AddLocalAudioTrack(AudioTrackInterface* audio_track,
-                          uint32_t ssrc) override;
+  void AddLocalAudioTrack(AudioTrackInterface* audio_track, uint32_t ssrc);
 
   // Removes a local audio tracks that is used for getting some voice
   // statistics.
-  void RemoveLocalAudioTrack(AudioTrackInterface* audio_track,
-                             uint32_t ssrc) override;
+  void RemoveLocalAudioTrack(AudioTrackInterface* audio_track, uint32_t ssrc);
 
   // Gather statistics from the session and store them for future use.
   void UpdateStats(PeerConnectionInterface::StatsOutputLevel level);
@@ -77,8 +74,7 @@ class StatsCollector : public StatsCollectorInterface {
   // of filling in |reports|.  As is, there's a requirement that the caller
   // uses |reports| immediately without allowing any async activity on
   // the thread (message handling etc) and then discard the results.
-  void GetStats(MediaStreamTrackInterface* track,
-                StatsReports* reports) override;
+  void GetStats(MediaStreamTrackInterface* track, StatsReports* reports);
 
   // Prepare a local or remote SSRC report for the given ssrc. Used internally
   // in the ExtractStatsFromList template.

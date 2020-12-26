@@ -22,7 +22,6 @@
 #include "api/test/simulated_network.h"
 #include "api/transport/bitrate_settings.h"
 #include "api/transport/network_control.h"
-#include "api/video_codecs/sdp_video_format.h"
 #include "api/video_codecs/video_decoder_factory.h"
 #include "api/video_codecs/video_encoder_config.h"
 #include "api/video_codecs/video_encoder_factory.h"
@@ -32,56 +31,60 @@ namespace webrtc {
 class VideoQualityTestFixtureInterface {
  public:
   // Parameters are grouped into smaller structs to make it easier to set
-  // the desired elements and skip unused.
+  // the desired elements and skip unused, using aggregate initialization.
+  // Unfortunately, C++11 (as opposed to C11) doesn't support unnamed structs,
+  // which makes the implementation of VideoQualityTest a bit uglier.
   struct Params {
+    Params();
+    ~Params();
     struct CallConfig {
-      bool send_side_bwe = false;
-      bool generic_descriptor = false;
+      bool send_side_bwe;
+      bool generic_descriptor;
       BitrateConstraints call_bitrate_config;
-      int num_thumbnails = 0;
+      int num_thumbnails;
       // Indicates if secondary_(video|ss|screenshare) structures are used.
-      bool dual_video = false;
+      bool dual_video;
     } call;
     struct Video {
-      bool enabled = false;
-      size_t width = 640;
-      size_t height = 480;
-      int32_t fps = 30;
-      int min_bitrate_bps = 50;
-      int target_bitrate_bps = 800;
-      int max_bitrate_bps = 800;
-      bool suspend_below_min_bitrate = false;
-      std::string codec = "VP8";
-      int num_temporal_layers = 1;
-      int selected_tl = -1;
-      int min_transmit_bps = 0;
-      bool ulpfec = false;
-      bool flexfec = false;
-      bool automatic_scaling = false;
+      bool enabled;
+      size_t width;
+      size_t height;
+      int32_t fps;
+      int min_bitrate_bps;
+      int target_bitrate_bps;
+      int max_bitrate_bps;
+      bool suspend_below_min_bitrate;
+      std::string codec;
+      int num_temporal_layers;
+      int selected_tl;
+      int min_transmit_bps;
+      bool ulpfec;
+      bool flexfec;
+      bool automatic_scaling;
       std::string clip_path;  // "Generator" to generate frames instead.
-      size_t capture_device_index = 0;
+      size_t capture_device_index;
       SdpVideoFormat::Parameters sdp_params;
-      double encoder_overshoot_factor = 0.0;
+      double encoder_overshoot_factor;
     } video[2];
     struct Audio {
-      bool enabled = false;
-      bool sync_video = false;
-      bool dtx = false;
-      bool use_real_adm = false;
+      bool enabled;
+      bool sync_video;
+      bool dtx;
+      bool use_real_adm;
       absl::optional<std::string> ana_config;
     } audio;
     struct Screenshare {
-      bool enabled = false;
-      bool generate_slides = false;
-      int32_t slide_change_interval = 10;
-      int32_t scroll_duration = 0;
+      bool enabled;
+      bool generate_slides;
+      int32_t slide_change_interval;
+      int32_t scroll_duration;
       std::vector<std::string> slides;
     } screenshare[2];
     struct Analyzer {
       std::string test_label;
-      double avg_psnr_threshold = 0.0;  // (*)
-      double avg_ssim_threshold = 0.0;  // (*)
-      int test_durations_secs = 0;
+      double avg_psnr_threshold;  // (*)
+      double avg_ssim_threshold;  // (*)
+      int test_durations_secs;
       std::string graph_data_output_filename;
       std::string graph_title;
     } analyzer;
@@ -92,14 +95,14 @@ class VideoQualityTestFixtureInterface {
     absl::optional<BuiltInNetworkBehaviorConfig> config;
     struct SS {                          // Spatial scalability.
       std::vector<VideoStream> streams;  // If empty, one stream is assumed.
-      size_t selected_stream = 0;
-      int num_spatial_layers = 0;
-      int selected_sl = -1;
-      InterLayerPredMode inter_layer_pred = InterLayerPredMode::kOn;
+      size_t selected_stream;
+      int num_spatial_layers;
+      int selected_sl;
+      InterLayerPredMode inter_layer_pred;
       // If empty, bitrates are generated in VP9Impl automatically.
       std::vector<SpatialLayer> spatial_layers;
       // If set, default parameters will be used instead of |streams|.
-      bool infer_streams = false;
+      bool infer_streams;
     } ss[2];
     struct Logging {
       std::string rtc_event_log_name;

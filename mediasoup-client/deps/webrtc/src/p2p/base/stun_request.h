@@ -76,7 +76,7 @@ class StunRequestManager {
  private:
   typedef std::map<std::string, StunRequest*> RequestMap;
 
-  rtc::Thread* const thread_;
+  rtc::Thread* thread_;
   RequestMap requests_;
   std::string origin_;
 

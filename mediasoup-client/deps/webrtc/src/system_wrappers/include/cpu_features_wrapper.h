@@ -13,10 +13,12 @@
 
 #include <stdint.h>
 
-namespace webrtc {
+#if defined(__cplusplus) || defined(c_plusplus)
+extern "C" {
+#endif
 
 // List of features in x86.
-typedef enum { kSSE2, kSSE3, kAVX2 } CPUFeature;
+typedef enum { kSSE2, kSSE3 } CPUFeature;
 
 // List of features in ARM.
 enum {
@@ -26,17 +28,21 @@ enum {
   kCPUFeatureLDREXSTREX = (1 << 3)
 };
 
+typedef int (*WebRtc_CPUInfo)(CPUFeature feature);
+
 // Returns true if the CPU supports the feature.
-int GetCPUInfo(CPUFeature feature);
+extern WebRtc_CPUInfo WebRtc_GetCPUInfo;
 
 // No CPU feature is available => straight C path.
-int GetCPUInfoNoASM(CPUFeature feature);
+extern WebRtc_CPUInfo WebRtc_GetCPUInfoNoASM;
 
 // Return the features in an ARM device.
 // It detects the features in the hardware platform, and returns supported
 // values in the above enum definition as a bitmask.
-uint64_t GetCPUFeaturesARM(void);
+extern uint64_t WebRtc_GetCPUFeaturesARM(void);
 
-}  // namespace webrtc
+#if defined(__cplusplus) || defined(c_plusplus)
+}  // extern "C"
+#endif
 
 #endif  // SYSTEM_WRAPPERS_INCLUDE_CPU_FEATURES_WRAPPER_H_

@@ -129,7 +129,7 @@
 #include <string>
 
 #include "rtc_base/constructor_magic.h"
-#include "rtc_base/synchronization/mutex.h"
+#include "rtc_base/critical_section.h"
 
 #define BWE_TEST_LOGGING_GLOBAL_CONTEXT(name)                             \
   do {                                                                    \
@@ -263,11 +263,10 @@ class Logging {
     Context(uint32_t name, int64_t timestamp_ms, bool enabled);
     Context(const std::string& name, int64_t timestamp_ms, bool enabled);
     Context(const char* name, int64_t timestamp_ms, bool enabled);
-
-    Context() = delete;
-    Context(const Context&) = delete;
-    Context& operator=(const Context&) = delete;
     ~Context();
+
+   private:
+    RTC_DISALLOW_IMPLICIT_CONSTRUCTORS(Context);
   };
 
   static Logging* GetInstance();
@@ -346,7 +345,7 @@ class Logging {
                  bool enabled);
   void PopState();
 
-  Mutex mutex_;
+  rtc::CriticalSection crit_sect_;
   ThreadMap thread_map_;
 
   RTC_DISALLOW_COPY_AND_ASSIGN(Logging);

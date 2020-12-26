@@ -49,13 +49,13 @@ RtpTransceiverDirection RtpTransceiverDirectionIntersection(
     RtpTransceiverDirection lhs,
     RtpTransceiverDirection rhs);
 
-#ifdef WEBRTC_UNIT_TEST
+#ifdef UNIT_TEST
 inline std::ostream& operator<<(  // no-presubmit-check TODO(webrtc:8982)
     std::ostream& os,             // no-presubmit-check TODO(webrtc:8982)
     RtpTransceiverDirection direction) {
   return os << RtpTransceiverDirectionToString(direction);
 }
-#endif  // WEBRTC_UNIT_TEST
+#endif  // UNIT_TEST
 
 }  // namespace webrtc
 

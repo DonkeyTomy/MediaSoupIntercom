@@ -24,7 +24,6 @@ extern RTC_EXPORT const char kVP9FmtpProfileId[];
 
 enum class VP9Profile {
   kProfile0,
-  kProfile1,
   kProfile2,
 };
 

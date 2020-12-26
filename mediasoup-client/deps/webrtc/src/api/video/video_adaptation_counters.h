@@ -11,8 +11,6 @@
 #ifndef API_VIDEO_VIDEO_ADAPTATION_COUNTERS_H_
 #define API_VIDEO_VIDEO_ADAPTATION_COUNTERS_H_
 
-#include <string>
-
 #include "rtc_base/checks.h"
 
 namespace webrtc {
@@ -34,8 +32,6 @@ struct VideoAdaptationCounters {
   bool operator!=(const VideoAdaptationCounters& rhs) const;
 
   VideoAdaptationCounters operator+(const VideoAdaptationCounters& other) const;
-
-  std::string ToString() const;
 
   int resolution_adaptations;
   int fps_adaptations;

@@ -198,17 +198,23 @@ RTC_OBJC_EXPORT
 @property(nonatomic, assign) BOOL allowCodecSwitching;
 
 /**
+ * If MediaTransportFactory is provided in PeerConnectionFactory, this flag informs PeerConnection
+ * that it should use the MediaTransportInterface.
+ */
+@property(nonatomic, assign) BOOL useMediaTransport;
+
+/**
+ * If MediaTransportFactory is provided in PeerConnectionFactory, this flag informs PeerConnection
+ * that it should use the MediaTransportInterface for data channels.
+ */
+@property(nonatomic, assign) BOOL useMediaTransportForDataChannels;
+
+/**
  * Defines advanced optional cryptographic settings related to SRTP and
  * frame encryption for native WebRTC. Setting this will overwrite any
  * options set through the PeerConnectionFactory (which is deprecated).
  */
 @property(nonatomic, nullable) RTC_OBJC_TYPE(RTCCryptoOptions) * cryptoOptions;
-
-/**
- * An optional string that will be attached to the TURN_ALLOCATE_REQUEST which
- * which can be used to correlate client logs with backend logs.
- */
-@property(nonatomic, nullable, copy) NSString *turnLoggingId;
 
 /**
  * Time interval between audio RTCP reports.

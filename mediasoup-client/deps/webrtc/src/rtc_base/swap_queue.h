@@ -141,8 +141,7 @@ class SwapQueue {
       return false;
     }
 
-    using std::swap;
-    swap(*input, queue_[next_write_index_]);
+    std::swap(*input, queue_[next_write_index_]);
 
     // Increment the value of num_elements_ to account for the inserted element.
     // Release memory ordering prevents the reads and writes to
@@ -182,8 +181,7 @@ class SwapQueue {
       return false;
     }
 
-    using std::swap;
-    swap(*output, queue_[next_read_index_]);
+    std::swap(*output, queue_[next_read_index_]);
 
     // Decrement the value of num_elements_ to account for the removed element.
     // Release memory ordering prevents the reads and writes to

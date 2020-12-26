@@ -20,11 +20,12 @@
 #include "api/candidate.h"
 #include "api/ice_transport_interface.h"
 #include "api/jsep.h"
-#include "api/transport/data_channel_transport_interface.h"
+#include "api/transport/datagram_transport_interface.h"
 #include "media/sctp/sctp_transport_internal.h"
 #include "p2p/base/dtls_transport.h"
 #include "p2p/base/p2p_constants.h"
 #include "p2p/base/transport_info.h"
+#include "pc/composite_data_channel_transport.h"
 #include "pc/composite_rtp_transport.h"
 #include "pc/dtls_srtp_transport.h"
 #include "pc/dtls_transport.h"
@@ -53,7 +54,9 @@ struct JsepTransportDescription {
       const std::vector<CryptoParams>& cryptos,
       const std::vector<int>& encrypted_header_extension_ids,
       int rtp_abs_sendtime_extn_id,
-      const TransportDescription& transport_description);
+      const TransportDescription& transport_description,
+      absl::optional<std::string> media_alt_protocol,
+      absl::optional<std::string> data_alt_protocol);
   JsepTransportDescription(const JsepTransportDescription& from);
   ~JsepTransportDescription();
 
@@ -66,6 +69,14 @@ struct JsepTransportDescription {
   // TODO(zhihuang): Add the ICE and DTLS related variables and methods from
   // TransportDescription and remove this extra layer of abstraction.
   TransportDescription transport_desc;
+
+  // Alt-protocols that apply to this JsepTransport.  Presence indicates a
+  // request to use an alternative protocol for media and/or data.  The
+  // alt-protocol is handled by a datagram transport.  If one or both of these
+  // values are present, JsepTransport will attempt to negotiate use of the
+  // datagram transport for media and/or data.
+  absl::optional<std::string> media_alt_protocol;
+  absl::optional<std::string> data_alt_protocol;
 };
 
 // Helper class used by JsepTransportController that processes
@@ -92,7 +103,9 @@ class JsepTransport : public sigslot::has_slots<> {
       std::unique_ptr<webrtc::RtpTransportInternal> datagram_rtp_transport,
       std::unique_ptr<DtlsTransportInternal> rtp_dtls_transport,
       std::unique_ptr<DtlsTransportInternal> rtcp_dtls_transport,
-      std::unique_ptr<SctpTransportInternal> sctp_transport);
+      std::unique_ptr<SctpTransportInternal> sctp_transport,
+      std::unique_ptr<webrtc::DatagramTransportInterface> datagram_transport,
+      webrtc::DataChannelTransportInterface* data_channel_transport);
 
   ~JsepTransport() override;
 
@@ -115,15 +128,14 @@ class JsepTransport : public sigslot::has_slots<> {
 
   webrtc::RTCError SetLocalJsepTransportDescription(
       const JsepTransportDescription& jsep_description,
-      webrtc::SdpType type) RTC_LOCKS_EXCLUDED(accessor_lock_);
+      webrtc::SdpType type);
 
   // Set the remote TransportDescription to be used by DTLS and ICE channels
   // that are part of this Transport.
   webrtc::RTCError SetRemoteJsepTransportDescription(
       const JsepTransportDescription& jsep_description,
-      webrtc::SdpType type) RTC_LOCKS_EXCLUDED(accessor_lock_);
-  webrtc::RTCError AddRemoteCandidates(const Candidates& candidates)
-      RTC_LOCKS_EXCLUDED(accessor_lock_);
+      webrtc::SdpType type);
+  webrtc::RTCError AddRemoteCandidates(const Candidates& candidates);
 
   // Set the "needs-ice-restart" flag as described in JSEP. After the flag is
   // set, offers should generate new ufrags/passwords until an ICE restart
@@ -131,22 +143,23 @@ class JsepTransport : public sigslot::has_slots<> {
   //
   // This and the below method can be called safely from any thread as long as
   // SetXTransportDescription is not in progress.
-  void SetNeedsIceRestartFlag() RTC_LOCKS_EXCLUDED(accessor_lock_);
+  void SetNeedsIceRestartFlag();
   // Returns true if the ICE restart flag above was set, and no ICE restart has
   // occurred yet for this transport (by applying a local description with
   // changed ufrag/password).
-  bool needs_ice_restart() const RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  bool needs_ice_restart() const {
     rtc::CritScope scope(&accessor_lock_);
     return needs_ice_restart_;
   }
 
   // Returns role if negotiated, or empty absl::optional if it hasn't been
   // negotiated yet.
-  absl::optional<rtc::SSLRole> GetDtlsRole() const
-      RTC_LOCKS_EXCLUDED(accessor_lock_);
+  absl::optional<rtc::SSLRole> GetDtlsRole() const;
+
+  absl::optional<OpaqueTransportParameters> GetTransportParameters() const;
 
   // TODO(deadbeef): Make this const. See comment in transportcontroller.h.
-  bool GetStats(TransportStats* stats) RTC_LOCKS_EXCLUDED(accessor_lock_);
+  bool GetStats(TransportStats* stats);
 
   const JsepTransportDescription* local_description() const {
     RTC_DCHECK_RUN_ON(network_thread_);
@@ -158,8 +171,7 @@ class JsepTransport : public sigslot::has_slots<> {
     return remote_description_.get();
   }
 
-  webrtc::RtpTransportInternal* rtp_transport() const
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  webrtc::RtpTransportInternal* rtp_transport() const {
     rtc::CritScope scope(&accessor_lock_);
     if (composite_rtp_transport_) {
       return composite_rtp_transport_.get();
@@ -170,8 +182,7 @@ class JsepTransport : public sigslot::has_slots<> {
     }
   }
 
-  const DtlsTransportInternal* rtp_dtls_transport() const
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  const DtlsTransportInternal* rtp_dtls_transport() const {
     rtc::CritScope scope(&accessor_lock_);
     if (rtp_dtls_transport_) {
       return rtp_dtls_transport_->internal();
@@ -180,14 +191,16 @@ class JsepTransport : public sigslot::has_slots<> {
     }
   }
 
-  DtlsTransportInternal* rtp_dtls_transport()
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  DtlsTransportInternal* rtp_dtls_transport() {
     rtc::CritScope scope(&accessor_lock_);
-    return rtp_dtls_transport_locked();
+    if (rtp_dtls_transport_) {
+      return rtp_dtls_transport_->internal();
+    } else {
+      return nullptr;
+    }
   }
 
-  const DtlsTransportInternal* rtcp_dtls_transport() const
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  const DtlsTransportInternal* rtcp_dtls_transport() const {
     rtc::CritScope scope(&accessor_lock_);
     if (rtcp_dtls_transport_) {
       return rtcp_dtls_transport_->internal();
@@ -196,8 +209,7 @@ class JsepTransport : public sigslot::has_slots<> {
     }
   }
 
-  DtlsTransportInternal* rtcp_dtls_transport()
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  DtlsTransportInternal* rtcp_dtls_transport() {
     rtc::CritScope scope(&accessor_lock_);
     if (rtcp_dtls_transport_) {
       return rtcp_dtls_transport_->internal();
@@ -206,33 +218,45 @@ class JsepTransport : public sigslot::has_slots<> {
     }
   }
 
-  rtc::scoped_refptr<webrtc::DtlsTransport> RtpDtlsTransport()
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  rtc::scoped_refptr<webrtc::DtlsTransport> RtpDtlsTransport() {
     rtc::CritScope scope(&accessor_lock_);
     return rtp_dtls_transport_;
   }
 
-  rtc::scoped_refptr<webrtc::SctpTransport> SctpTransport() const
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  rtc::scoped_refptr<webrtc::SctpTransport> SctpTransport() const {
     rtc::CritScope scope(&accessor_lock_);
     return sctp_transport_;
   }
 
-  // TODO(bugs.webrtc.org/9719): Delete method, update callers to use
-  // SctpTransport() instead.
-  webrtc::DataChannelTransportInterface* data_channel_transport() const
-      RTC_LOCKS_EXCLUDED(accessor_lock_) {
+  webrtc::DataChannelTransportInterface* data_channel_transport() const {
     rtc::CritScope scope(&accessor_lock_);
-    if (sctp_data_channel_transport_) {
+    if (composite_data_channel_transport_) {
+      return composite_data_channel_transport_.get();
+    } else if (sctp_data_channel_transport_) {
       return sctp_data_channel_transport_.get();
     }
-    return nullptr;
+    return data_channel_transport_;
+  }
+
+  // Returns datagram transport, if available.
+  webrtc::DatagramTransportInterface* datagram_transport() const {
+    rtc::CritScope scope(&accessor_lock_);
+    return datagram_transport_.get();
   }
 
   // This is signaled when RTCP-mux becomes active and
   // |rtcp_dtls_transport_| is destroyed. The JsepTransportController will
   // handle the signal and update the aggregate transport states.
   sigslot::signal<> SignalRtcpMuxActive;
+
+  // Signals that a data channel transport was negotiated and may be used to
+  // send data.  The first parameter is |this|.  The second parameter is the
+  // transport that was negotiated, or null if negotiation rejected the data
+  // channel transport.  The third parameter (bool) indicates whether the
+  // negotiation was provisional or final.  If true, it is provisional, if
+  // false, it is final.
+  sigslot::signal2<JsepTransport*, webrtc::DataChannelTransportInterface*>
+      SignalDataChannelTransportNegotiated;
 
   // TODO(deadbeef): The methods below are only public for testing. Should make
   // them utility functions or objects so they can be tested independently from
@@ -247,15 +271,6 @@ class JsepTransport : public sigslot::has_slots<> {
   void SetActiveResetSrtpParams(bool active_reset_srtp_params);
 
  private:
-  DtlsTransportInternal* rtp_dtls_transport_locked()
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(accessor_lock_) {
-    if (rtp_dtls_transport_) {
-      return rtp_dtls_transport_->internal();
-    } else {
-      return nullptr;
-    }
-  }
-
   bool SetRtcpMux(bool enable, webrtc::SdpType type, ContentSource source);
 
   void ActivateRtcpMux();
@@ -263,8 +278,7 @@ class JsepTransport : public sigslot::has_slots<> {
   bool SetSdes(const std::vector<CryptoParams>& cryptos,
                const std::vector<int>& encrypted_extension_ids,
                webrtc::SdpType type,
-               ContentSource source)
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(accessor_lock_);
+               ContentSource source);
 
   // Negotiates and sets the DTLS parameters based on the current local and
   // remote transport description, such as the DTLS role to use, and whether
@@ -281,22 +295,26 @@ class JsepTransport : public sigslot::has_slots<> {
       webrtc::SdpType local_description_type,
       ConnectionRole local_connection_role,
       ConnectionRole remote_connection_role,
-      absl::optional<rtc::SSLRole>* negotiated_dtls_role)
-      RTC_LOCKS_EXCLUDED(accessor_lock_);
+      absl::optional<rtc::SSLRole>* negotiated_dtls_role);
 
   // Pushes down the ICE parameters from the remote description.
   void SetRemoteIceParameters(const IceParameters& ice_parameters,
                               IceTransportInternal* ice);
 
   // Pushes down the DTLS parameters obtained via negotiation.
-  static webrtc::RTCError SetNegotiatedDtlsParameters(
+  webrtc::RTCError SetNegotiatedDtlsParameters(
       DtlsTransportInternal* dtls_transport,
       absl::optional<rtc::SSLRole> dtls_role,
       rtc::SSLFingerprint* remote_fingerprint);
 
   bool GetTransportStats(DtlsTransportInternal* dtls_transport,
-                         TransportStats* stats)
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(accessor_lock_);
+                         TransportStats* stats);
+
+  // Deactivates, signals removal, and deletes |composite_rtp_transport_| if the
+  // current state of negotiation is sufficient to determine which rtp_transport
+  // and data channel transport to use.
+  void NegotiateDatagramTransport(webrtc::SdpType type)
+      RTC_RUN_ON(network_thread_);
 
   // Returns the default (non-datagram) rtp transport, if any.
   webrtc::RtpTransportInternal* default_rtp_transport() const
@@ -316,7 +334,7 @@ class JsepTransport : public sigslot::has_slots<> {
   const rtc::Thread* const network_thread_;
   // Critical scope for fields accessed off-thread
   // TODO(https://bugs.webrtc.org/10300): Stop doing this.
-  rtc::RecursiveCriticalSection accessor_lock_;
+  rtc::CriticalSection accessor_lock_;
   const std::string mid_;
   // needs-ice-restart bit as described in JSEP.
   bool needs_ice_restart_ RTC_GUARDED_BY(accessor_lock_) = false;
@@ -369,8 +387,21 @@ class JsepTransport : public sigslot::has_slots<> {
   absl::optional<std::vector<int>> recv_extension_ids_
       RTC_GUARDED_BY(network_thread_);
 
+  // Optional datagram transport (experimental).
+  std::unique_ptr<webrtc::DatagramTransportInterface> datagram_transport_
+      RTC_GUARDED_BY(accessor_lock_);
+
   std::unique_ptr<webrtc::RtpTransportInternal> datagram_rtp_transport_
       RTC_GUARDED_BY(accessor_lock_);
+
+  // Non-SCTP data channel transport.  Set to |datagram_transport_| if that
+  // transport should be used for data chanels.  Unset otherwise.
+  webrtc::DataChannelTransportInterface* data_channel_transport_
+      RTC_GUARDED_BY(accessor_lock_) = nullptr;
+
+  // Composite data channel transport, used during negotiation.
+  std::unique_ptr<webrtc::CompositeDataChannelTransport>
+      composite_data_channel_transport_ RTC_GUARDED_BY(accessor_lock_);
 
   RTC_DISALLOW_COPY_AND_ASSIGN(JsepTransport);
 };

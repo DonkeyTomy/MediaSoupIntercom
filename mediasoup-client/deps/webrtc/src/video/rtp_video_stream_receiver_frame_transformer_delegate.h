@@ -16,21 +16,11 @@
 #include "api/frame_transformer_interface.h"
 #include "modules/video_coding/frame_object.h"
 #include "rtc_base/synchronization/sequence_checker.h"
-#include "rtc_base/system/no_unique_address.h"
 #include "rtc_base/thread.h"
 
 namespace webrtc {
 
-// Called back by RtpVideoStreamReceiverFrameTransformerDelegate on the network
-// thread after transformation.
-class RtpVideoFrameReceiver {
- public:
-  virtual void ManageFrame(
-      std::unique_ptr<video_coding::RtpFrameObject> frame) = 0;
-
- protected:
-  virtual ~RtpVideoFrameReceiver() = default;
-};
+class RtpVideoStreamReceiver;
 
 // Delegates calls to FrameTransformerInterface to transform frames, and to
 // RtpVideoStreamReceiver to manage transformed frames on the |network_thread_|.
@@ -38,7 +28,7 @@ class RtpVideoStreamReceiverFrameTransformerDelegate
     : public TransformedFrameCallback {
  public:
   RtpVideoStreamReceiverFrameTransformerDelegate(
-      RtpVideoFrameReceiver* receiver,
+      RtpVideoStreamReceiver* receiver,
       rtc::scoped_refptr<FrameTransformerInterface> frame_transformer,
       rtc::Thread* network_thread,
       uint32_t ssrc);
@@ -54,7 +44,7 @@ class RtpVideoStreamReceiverFrameTransformerDelegate
   void OnTransformedFrame(
       std::unique_ptr<TransformableFrameInterface> frame) override;
 
-  // Delegates the call to RtpVideoFrameReceiver::ManageFrame on the
+  // Delegates the call to RtpVideoReceiver::ManageFrame on the
   // |network_thread_|.
   void ManageFrame(std::unique_ptr<TransformableFrameInterface> frame);
 
@@ -62,8 +52,8 @@ class RtpVideoStreamReceiverFrameTransformerDelegate
   ~RtpVideoStreamReceiverFrameTransformerDelegate() override = default;
 
  private:
-  RTC_NO_UNIQUE_ADDRESS SequenceChecker network_sequence_checker_;
-  RtpVideoFrameReceiver* receiver_ RTC_GUARDED_BY(network_sequence_checker_);
+  SequenceChecker network_sequence_checker_;
+  RtpVideoStreamReceiver* receiver_ RTC_GUARDED_BY(network_sequence_checker_);
   rtc::scoped_refptr<FrameTransformerInterface> frame_transformer_
       RTC_GUARDED_BY(network_sequence_checker_);
   rtc::Thread* const network_thread_;

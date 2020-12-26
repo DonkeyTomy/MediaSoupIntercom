@@ -35,8 +35,8 @@ enum class DataMessageType {
 // sent reliably and in-order, even if the data channel is configured for
 // unreliable delivery.
 struct SendDataParams {
-  SendDataParams() = default;
-  SendDataParams(const SendDataParams&) = default;
+  SendDataParams();
+  SendDataParams(const SendDataParams&);
 
   DataMessageType type = DataMessageType::kText;
 

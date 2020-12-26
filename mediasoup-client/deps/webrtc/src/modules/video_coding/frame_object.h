@@ -47,12 +47,9 @@ class RtpFrameObject : public EncodedFrame {
   int64_t RenderTime() const override;
   bool delayed_by_retransmission() const override;
   const RTPVideoHeader& GetRtpVideoHeader() const;
-
-  uint8_t* mutable_data() { return image_buffer_->data(); }
+  const FrameMarking& GetFrameMarking() const;
 
  private:
-  // Reference for mutable access.
-  rtc::scoped_refptr<EncodedImageBuffer> image_buffer_;
   RTPVideoHeader rtp_video_header_;
   VideoCodecType codec_type_;
   uint16_t first_seq_num_;

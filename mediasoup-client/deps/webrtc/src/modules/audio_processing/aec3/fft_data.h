@@ -41,9 +41,6 @@ struct FftData {
   }
 
   // Computes the power spectrum of the data.
-  void SpectrumAVX2(rtc::ArrayView<float> power_spectrum) const;
-
-  // Computes the power spectrum of the data.
   void Spectrum(Aec3Optimization optimization,
                 rtc::ArrayView<float> power_spectrum) const {
     RTC_DCHECK_EQ(kFftLengthBy2Plus1, power_spectrum.size());
@@ -63,9 +60,6 @@ struct FftData {
         power_spectrum[kFftLengthBy2] = re[kFftLengthBy2] * re[kFftLengthBy2] +
                                         im[kFftLengthBy2] * im[kFftLengthBy2];
       } break;
-      case Aec3Optimization::kAvx2:
-        SpectrumAVX2(power_spectrum);
-        break;
 #endif
       default:
         std::transform(re.begin(), re.end(), im.begin(), power_spectrum.begin(),

@@ -14,6 +14,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "rtc_base/constructor_magic.h"
+
 namespace webrtc {
 
 // Helper class to compute the inter-arrival time delta and the size delta
@@ -32,10 +34,6 @@ class InterArrival {
   InterArrival(uint32_t timestamp_group_length_ticks,
                double timestamp_to_ms_coeff,
                bool enable_burst_grouping);
-
-  InterArrival() = delete;
-  InterArrival(const InterArrival&) = delete;
-  InterArrival& operator=(const InterArrival&) = delete;
 
   // This function returns true if a delta was computed, or false if the current
   // group is still incomplete or if only one group has been completed.
@@ -89,6 +87,8 @@ class InterArrival {
   double timestamp_to_ms_coeff_;
   bool burst_grouping_;
   int num_consecutive_reordered_packets_;
+
+  RTC_DISALLOW_IMPLICIT_CONSTRUCTORS(InterArrival);
 };
 }  // namespace webrtc
 

@@ -24,7 +24,6 @@
 #include "modules/video_coding/receiver.h"
 #include "modules/video_coding/timing.h"
 #include "rtc_base/one_time_event.h"
-#include "rtc_base/synchronization/mutex.h"
 #include "rtc_base/synchronization/sequence_checker.h"
 #include "rtc_base/thread_annotations.h"
 #include "rtc_base/thread_checker.h"
@@ -60,9 +59,9 @@ class VideoReceiver : public Module {
   VideoReceiver(Clock* clock, VCMTiming* timing);
   ~VideoReceiver() override;
 
-  int32_t RegisterReceiveCodec(uint8_t payload_type,
-                               const VideoCodec* receiveCodec,
-                               int32_t numberOfCores);
+  int32_t RegisterReceiveCodec(const VideoCodec* receiveCodec,
+                               int32_t numberOfCores,
+                               bool requireKeyFrame);
 
   void RegisterExternalDecoder(VideoDecoder* externalDecoder,
                                uint8_t payloadType);
@@ -101,7 +100,7 @@ class VideoReceiver : public Module {
   rtc::ThreadChecker decoder_thread_checker_;
   rtc::ThreadChecker module_thread_checker_;
   Clock* const clock_;
-  Mutex process_mutex_;
+  rtc::CriticalSection process_crit_;
   VCMTiming* _timing;
   VCMReceiver _receiver;
   VCMDecodedFrameCallback _decodedFrameCallback;
@@ -112,8 +111,8 @@ class VideoReceiver : public Module {
   VCMPacketRequestCallback* _packetRequestCallback;
 
   // Used on both the module and decoder thread.
-  bool _scheduleKeyRequest RTC_GUARDED_BY(process_mutex_);
-  bool drop_frames_until_keyframe_ RTC_GUARDED_BY(process_mutex_);
+  bool _scheduleKeyRequest RTC_GUARDED_BY(process_crit_);
+  bool drop_frames_until_keyframe_ RTC_GUARDED_BY(process_crit_);
 
   // Modified on the construction thread while not attached to the process
   // thread.  Once attached to the process thread, its value is only read

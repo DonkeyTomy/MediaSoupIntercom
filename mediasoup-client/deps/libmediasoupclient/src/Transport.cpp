@@ -408,7 +408,7 @@ namespace mediasoupclient
 	  const json& appData)
 	{
 		MSC_TRACE();
-
+		MSC_DEBUG("rtpParameters()");
 		if (this->closed)
 			MSC_THROW_INVALID_STATE_ERROR("RecvTransport closed");
 		else if (id.empty())

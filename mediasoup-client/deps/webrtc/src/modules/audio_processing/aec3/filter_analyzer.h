@@ -112,16 +112,7 @@ class FilterAnalyzer {
   struct FilterAnalysisState {
     explicit FilterAnalysisState(const EchoCanceller3Config& config)
         : filter_length_blocks(config.filter.refined_initial.length_blocks),
-          consistent_filter_detector(config) {
-      Reset(config.ep_strength.default_gain);
-    }
-
-    void Reset(float default_gain) {
-      peak_index = 0;
-      gain = default_gain;
-      consistent_filter_detector.Reset();
-    }
-
+          consistent_filter_detector(config) {}
     float gain;
     size_t peak_index;
     int filter_length_blocks;

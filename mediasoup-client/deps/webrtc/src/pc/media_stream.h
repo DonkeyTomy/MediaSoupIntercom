@@ -48,7 +48,7 @@ class MediaStream : public Notifier<MediaStreamInterface> {
   template <typename TrackVector>
   bool RemoveTrack(TrackVector* Tracks, MediaStreamTrackInterface* track);
 
-  const std::string id_;
+  std::string id_;
   AudioTrackVector audio_tracks_;
   VideoTrackVector video_tracks_;
 };

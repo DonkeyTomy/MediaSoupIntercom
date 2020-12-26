@@ -22,15 +22,31 @@
 #include "api/transport/network_types.h"
 #include "api/transport/webrtc_key_value_config.h"
 #include "modules/congestion_controller/goog_cc/delay_increase_detector_interface.h"
-#include "modules/congestion_controller/goog_cc/inter_arrival_delta.h"
 #include "modules/congestion_controller/goog_cc/probe_bitrate_estimator.h"
 #include "modules/remote_bitrate_estimator/aimd_rate_control.h"
+#include "modules/remote_bitrate_estimator/include/bwe_defines.h"
 #include "modules/remote_bitrate_estimator/inter_arrival.h"
+#include "rtc_base/constructor_magic.h"
 #include "rtc_base/experiments/struct_parameters_parser.h"
 #include "rtc_base/race_checker.h"
 
 namespace webrtc {
 class RtcEventLog;
+
+struct BweIgnoreSmallPacketsSettings {
+  static constexpr char kKey[] = "WebRTC-BweIgnoreSmallPacketsFix";
+
+  BweIgnoreSmallPacketsSettings() = default;
+  explicit BweIgnoreSmallPacketsSettings(
+      const WebRtcKeyValueConfig* key_value_config);
+
+  double smoothing_factor = 0.1;
+  double fraction_large = 1.0;
+  DataSize large_threshold = DataSize::Zero();
+  DataSize small_threshold = DataSize::Zero();
+
+  std::unique_ptr<StructParametersParser> Parser();
+};
 
 struct BweSeparateAudioPacketsSettings {
   static constexpr char kKey[] = "WebRTC-Bwe-SeparateAudioPackets";
@@ -50,6 +66,7 @@ class DelayBasedBwe {
  public:
   struct Result {
     Result();
+    Result(bool probe, DataRate target_bitrate);
     ~Result() = default;
     bool updated;
     bool probe;
@@ -61,11 +78,6 @@ class DelayBasedBwe {
   explicit DelayBasedBwe(const WebRtcKeyValueConfig* key_value_config,
                          RtcEventLog* event_log,
                          NetworkStatePredictor* network_state_predictor);
-
-  DelayBasedBwe() = delete;
-  DelayBasedBwe(const DelayBasedBwe&) = delete;
-  DelayBasedBwe& operator=(const DelayBasedBwe&) = delete;
-
   virtual ~DelayBasedBwe();
 
   Result IncomingPacketFeedbackVector(
@@ -97,13 +109,18 @@ class DelayBasedBwe {
       Timestamp at_time);
   // Updates the current remote rate estimate and returns true if a valid
   // estimate exists.
-  bool UpdateEstimate(Timestamp at_time,
+  bool UpdateEstimate(Timestamp now,
                       absl::optional<DataRate> acked_bitrate,
-                      DataRate* target_rate);
+                      DataRate* target_bitrate);
 
   rtc::RaceChecker network_race_;
   RtcEventLog* const event_log_;
   const WebRtcKeyValueConfig* const key_value_config_;
+
+  // Filtering out small packets. Intention is to base the detection only
+  // on video packets even if we have TWCC sequence numbers for audio.
+  BweIgnoreSmallPacketsSettings ignore_small_;
+  double fraction_large_packets_;
 
   // Alternatively, run two separate overuse detectors for audio and video,
   // and fall back to the audio one if we haven't seen a video packet in a
@@ -114,10 +131,8 @@ class DelayBasedBwe {
 
   NetworkStatePredictor* network_state_predictor_;
   std::unique_ptr<InterArrival> video_inter_arrival_;
-  std::unique_ptr<InterArrivalDelta> video_inter_arrival_delta_;
   std::unique_ptr<DelayIncreaseDetectorInterface> video_delay_detector_;
   std::unique_ptr<InterArrival> audio_inter_arrival_;
-  std::unique_ptr<InterArrivalDelta> audio_inter_arrival_delta_;
   std::unique_ptr<DelayIncreaseDetectorInterface> audio_delay_detector_;
   DelayIncreaseDetectorInterface* active_delay_detector_;
 
@@ -127,8 +142,8 @@ class DelayBasedBwe {
   DataRate prev_bitrate_;
   bool has_once_detected_overuse_;
   BandwidthUsage prev_state_;
-  const bool use_new_inter_arrival_delta_;
   bool alr_limited_backoff_enabled_;
+  RTC_DISALLOW_IMPLICIT_CONSTRUCTORS(DelayBasedBwe);
 };
 
 }  // namespace webrtc

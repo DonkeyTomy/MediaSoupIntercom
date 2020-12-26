@@ -21,26 +21,23 @@ namespace test {
 
 class MockAudioSendStream : public AudioSendStream {
  public:
-  MOCK_METHOD(const webrtc::AudioSendStream::Config&,
-              GetConfig,
-              (),
-              (const, override));
-  MOCK_METHOD(void, Reconfigure, (const Config& config), (override));
-  MOCK_METHOD(void, Start, (), (override));
-  MOCK_METHOD(void, Stop, (), (override));
+  MOCK_CONST_METHOD0(GetConfig, const webrtc::AudioSendStream::Config&());
+  MOCK_METHOD1(Reconfigure, void(const Config& config));
+  MOCK_METHOD0(Start, void());
+  MOCK_METHOD0(Stop, void());
   // GMock doesn't like move-only types, such as std::unique_ptr.
-  void SendAudioData(std::unique_ptr<webrtc::AudioFrame> audio_frame) override {
+  virtual void SendAudioData(std::unique_ptr<webrtc::AudioFrame> audio_frame) {
     SendAudioDataForMock(audio_frame.get());
   }
-  MOCK_METHOD(void, SendAudioDataForMock, (webrtc::AudioFrame*));
-  MOCK_METHOD(
-      bool,
-      SendTelephoneEvent,
-      (int payload_type, int payload_frequency, int event, int duration_ms),
-      (override));
-  MOCK_METHOD(void, SetMuted, (bool muted), (override));
-  MOCK_METHOD(Stats, GetStats, (), (const, override));
-  MOCK_METHOD(Stats, GetStats, (bool has_remote_tracks), (const, override));
+  MOCK_METHOD1(SendAudioDataForMock, void(webrtc::AudioFrame* audio_frame));
+  MOCK_METHOD4(SendTelephoneEvent,
+               bool(int payload_type,
+                    int payload_frequency,
+                    int event,
+                    int duration_ms));
+  MOCK_METHOD1(SetMuted, void(bool muted));
+  MOCK_CONST_METHOD0(GetStats, Stats());
+  MOCK_CONST_METHOD1(GetStats, Stats(bool has_remote_tracks));
 };
 }  // namespace test
 }  // namespace webrtc

@@ -16,8 +16,7 @@
 #include "api/frame_transformer_interface.h"
 #include "api/scoped_refptr.h"
 #include "api/task_queue/task_queue_base.h"
-#include "api/video/video_layers_allocation.h"
-#include "rtc_base/synchronization/mutex.h"
+#include "rtc_base/critical_section.h"
 
 namespace webrtc {
 
@@ -32,7 +31,7 @@ class RTPSenderVideoFrameTransformerDelegate : public TransformedFrameCallback {
       RTPSenderVideo* sender,
       rtc::scoped_refptr<FrameTransformerInterface> frame_transformer,
       uint32_t ssrc,
-      TaskQueueBase* send_transport_queue);
+      TaskQueueBase* worker_queue);
 
   void Init();
 
@@ -41,6 +40,7 @@ class RTPSenderVideoFrameTransformerDelegate : public TransformedFrameCallback {
                       absl::optional<VideoCodecType> codec_type,
                       uint32_t rtp_timestamp,
                       const EncodedImage& encoded_image,
+                      const RTPFragmentationHeader* fragmentation,
                       RTPVideoHeader video_header,
                       absl::optional<int64_t> expected_retransmission_time_ms);
 
@@ -52,15 +52,9 @@ class RTPSenderVideoFrameTransformerDelegate : public TransformedFrameCallback {
   // Delegates the call to RTPSendVideo::SendVideo on the |encoder_queue_|.
   void SendVideo(std::unique_ptr<TransformableFrameInterface> frame) const;
 
-  // Delegates the call to RTPSendVideo::SetVideoStructureAfterTransformation
-  // under |sender_lock_|.
+  // Delegates the call to RTPSendVideo::SendVideo under |sender_lock_|.
   void SetVideoStructureUnderLock(
       const FrameDependencyStructure* video_structure);
-
-  // Delegates the call to
-  // RTPSendVideo::SetVideoLayersAllocationAfterTransformation under
-  // |sender_lock_|.
-  void SetVideoLayersAllocationUnderLock(VideoLayersAllocation allocation);
 
   // Unregisters and releases the |frame_transformer_| reference, and resets
   // |sender_| under lock. Called from RTPSenderVideo destructor to prevent the
@@ -71,12 +65,12 @@ class RTPSenderVideoFrameTransformerDelegate : public TransformedFrameCallback {
   ~RTPSenderVideoFrameTransformerDelegate() override = default;
 
  private:
-  mutable Mutex sender_lock_;
+  rtc::CriticalSection sender_lock_;
   RTPSenderVideo* sender_ RTC_GUARDED_BY(sender_lock_);
   rtc::scoped_refptr<FrameTransformerInterface> frame_transformer_;
   const uint32_t ssrc_;
   TaskQueueBase* encoder_queue_ = nullptr;
-  TaskQueueBase* send_transport_queue_;
+  TaskQueueBase* worker_queue_;
 };
 
 }  // namespace webrtc

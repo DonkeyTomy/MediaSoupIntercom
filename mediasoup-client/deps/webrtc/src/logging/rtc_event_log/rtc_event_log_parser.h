@@ -11,7 +11,6 @@
 #define LOGGING_RTC_EVENT_LOG_RTC_EVENT_LOG_PARSER_H_
 
 #include <iterator>
-#include <limits>
 #include <map>
 #include <set>
 #include <sstream>  // no-presubmit-check TODO(webrtc:8982)
@@ -194,8 +193,6 @@ class PacketView {
 
   size_t size() const { return num_elements_; }
 
-  bool empty() const { return num_elements_ == 0; }
-
   T& operator[](size_t i) {
     auto elem_ptr = data_ + i * element_size_;
     return *reinterpret_cast<T*>(elem_ptr);
@@ -331,20 +328,6 @@ class ParsedRtcEventLog {
     LoggedRtpStreamView(const LoggedRtpStreamView&);
     uint32_t ssrc;
     PacketView<const LoggedRtpPacket> packet_view;
-  };
-
-  class LogSegment {
-   public:
-    LogSegment(int64_t start_time_us, int64_t stop_time_us)
-        : start_time_us_(start_time_us), stop_time_us_(stop_time_us) {}
-    int64_t start_time_ms() const { return start_time_us_ / 1000; }
-    int64_t start_time_us() const { return start_time_us_; }
-    int64_t stop_time_ms() const { return stop_time_us_ / 1000; }
-    int64_t stop_time_us() const { return stop_time_us_; }
-
-   private:
-    int64_t start_time_us_;
-    int64_t stop_time_us_;
   };
 
   static webrtc::RtpHeaderExtensionMap GetDefaultHeaderExtensionMap();
@@ -611,16 +594,8 @@ class ParsedRtcEventLog {
     return generic_acks_received_;
   }
 
-  // Media
-  const std::map<uint32_t, std::vector<LoggedFrameDecoded>>& decoded_frames()
-      const {
-    return decoded_frames_;
-  }
-
   int64_t first_timestamp() const { return first_timestamp_; }
   int64_t last_timestamp() const { return last_timestamp_; }
-
-  const LogSegment& first_log_segment() const { return first_log_segment_; }
 
   std::vector<LoggedPacketInfo> GetPacketInfos(PacketDirection direction) const;
   std::vector<LoggedPacketInfo> GetIncomingPacketInfos() const {
@@ -670,7 +645,8 @@ class ParsedRtcEventLog {
   // NB: The packet must have space for at least IP_PACKET_SIZE bytes.
   ParseStatus GetRtcpPacket(const rtclog::Event& event,
                             PacketDirection* incoming,
-                            std::vector<uint8_t>* packet) const;
+                            uint8_t* packet,
+                            size_t* length) const;
 
   ParseStatusOr<rtclog::StreamConfig> GetVideoReceiveConfig(
       const rtclog::Event& event) const;
@@ -731,8 +707,6 @@ class ParsedRtcEventLog {
   ParseStatus StoreDtlsTransportState(
       const rtclog2::DtlsTransportStateEvent& proto);
   ParseStatus StoreDtlsWritableState(const rtclog2::DtlsWritableState& proto);
-  ParsedRtcEventLog::ParseStatus StoreFrameDecodedEvents(
-      const rtclog2::FrameDecodedEvents& proto);
   ParseStatus StoreGenericAckReceivedEvent(
       const rtclog2::GenericAckReceived& proto);
   ParseStatus StoreGenericPacketReceivedEvent(
@@ -855,8 +829,6 @@ class ParsedRtcEventLog {
   std::vector<LoggedDtlsTransportState> dtls_transport_states_;
   std::vector<LoggedDtlsWritableState> dtls_writable_states_;
 
-  std::map<uint32_t, std::vector<LoggedFrameDecoded>> decoded_frames_;
-
   std::vector<LoggedIceCandidatePairConfig> ice_candidate_pair_configs_;
   std::vector<LoggedIceCandidatePairEvent> ice_candidate_pair_events_;
 
@@ -872,13 +844,11 @@ class ParsedRtcEventLog {
   std::vector<LoggedRouteChangeEvent> route_change_events_;
   std::vector<LoggedRemoteEstimateEvent> remote_estimate_events_;
 
-  std::vector<uint8_t> last_incoming_rtcp_packet_;
+  uint8_t last_incoming_rtcp_packet_[IP_PACKET_SIZE];
+  uint8_t last_incoming_rtcp_packet_length_;
 
   int64_t first_timestamp_;
   int64_t last_timestamp_;
-
-  LogSegment first_log_segment_ =
-      LogSegment(0, std::numeric_limits<int64_t>::max());
 
   // The extension maps are mutable to allow us to insert the default
   // configuration when parsing an RTP header for an unconfigured stream.

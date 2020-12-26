@@ -24,6 +24,7 @@
 #include "pc/session_description.h"
 #include "rtc_base/buffer.h"
 #include "rtc_base/constructor_magic.h"
+#include "rtc_base/critical_section.h"
 #include "rtc_base/ssl_stream_adapter.h"
 #include "rtc_base/thread_checker.h"
 

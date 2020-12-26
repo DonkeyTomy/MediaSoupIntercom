@@ -26,7 +26,6 @@ class SubtractorOutputAnalyzer {
   // Analyses the subtractor output.
   void Update(rtc::ArrayView<const SubtractorOutput> subtractor_output,
               bool* any_filter_converged,
-              bool* any_coarse_filter_converged,
               bool* all_filters_diverged);
 
   const std::vector<bool>& ConvergedFilters() const {

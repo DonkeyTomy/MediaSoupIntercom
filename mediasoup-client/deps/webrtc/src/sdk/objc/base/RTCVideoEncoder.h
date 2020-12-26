@@ -13,6 +13,7 @@
 #import "RTCCodecSpecificInfo.h"
 #import "RTCEncodedImage.h"
 #import "RTCMacros.h"
+#import "RTCRtpFragmentationHeader.h"
 #import "RTCVideoEncoderQpThresholds.h"
 #import "RTCVideoEncoderSettings.h"
 #import "RTCVideoFrame.h"
@@ -21,7 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** Callback block for encoder. */
 typedef BOOL (^RTCVideoEncoderCallback)(RTC_OBJC_TYPE(RTCEncodedImage) * frame,
-                                        id<RTC_OBJC_TYPE(RTCCodecSpecificInfo)> info);
+                                        id<RTC_OBJC_TYPE(RTCCodecSpecificInfo)> info,
+                                        RTC_OBJC_TYPE(RTCRtpFragmentationHeader) * header);
 
 /** Protocol for encoder implementations. */
 RTC_OBJC_EXPORT

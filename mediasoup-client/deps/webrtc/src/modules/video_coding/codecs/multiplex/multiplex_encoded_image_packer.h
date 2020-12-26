@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "api/video/encoded_image.h"
-#include "api/video_codecs/video_codec.h"
 
 namespace webrtc {
 

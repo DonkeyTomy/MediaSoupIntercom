@@ -10,14 +10,13 @@
 
 #import <Foundation/Foundation.h>
 
-#import "base/RTCMacros.h"
 #import "base/RTCVideoEncoder.h"
 
 #include "api/video_codecs/sdp_video_format.h"
 #include "api/video_codecs/video_encoder.h"
 #include "media/base/codec.h"
 
-@interface RTC_OBJC_TYPE (RTCWrappedNativeVideoEncoder) : NSObject <RTC_OBJC_TYPE (RTCVideoEncoder)>
+@interface RTCWrappedNativeVideoEncoder : NSObject <RTC_OBJC_TYPE (RTCVideoEncoder)>
 
 - (instancetype)initWithNativeEncoder:(std::unique_ptr<webrtc::VideoEncoder>)encoder;
 

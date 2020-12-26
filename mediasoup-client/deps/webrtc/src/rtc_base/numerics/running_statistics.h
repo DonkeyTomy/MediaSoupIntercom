@@ -8,8 +8,8 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#ifndef API_NUMERICS_RUNNING_STATISTICS_H_
-#define API_NUMERICS_RUNNING_STATISTICS_H_
+#ifndef RTC_BASE_NUMERICS_RUNNING_STATISTICS_H_
+#define RTC_BASE_NUMERICS_RUNNING_STATISTICS_H_
 
 #include <algorithm>
 #include <cmath>
@@ -20,7 +20,6 @@
 #include "rtc_base/numerics/math_utils.h"
 
 namespace webrtc {
-namespace webrtc_impl {
 
 // tl;dr: Robust and efficient online computation of statistics,
 //        using Welford's method for variance. [1]
@@ -155,7 +154,6 @@ class RunningStatistics {
   double cumul_ = 0;  // Variance * size_, sometimes noted m2.
 };
 
-}  // namespace webrtc_impl
 }  // namespace webrtc
 
-#endif  // API_NUMERICS_RUNNING_STATISTICS_H_
+#endif  // RTC_BASE_NUMERICS_RUNNING_STATISTICS_H_

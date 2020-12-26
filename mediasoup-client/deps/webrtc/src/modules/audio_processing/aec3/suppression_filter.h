@@ -14,6 +14,7 @@
 #include <array>
 #include <vector>
 
+#include "common_audio/third_party/ooura/fft_size_128/ooura_fft.h"
 #include "modules/audio_processing/aec3/aec3_common.h"
 #include "modules/audio_processing/aec3/aec3_fft.h"
 #include "modules/audio_processing/aec3/fft_data.h"
@@ -38,6 +39,7 @@ class SuppressionFilter {
   const Aec3Optimization optimization_;
   const int sample_rate_hz_;
   const size_t num_capture_channels_;
+  const OouraFft ooura_fft_;
   const Aec3Fft fft_;
   std::vector<std::vector<std::array<float, kFftLengthBy2>>> e_output_old_;
   RTC_DISALLOW_COPY_AND_ASSIGN(SuppressionFilter);

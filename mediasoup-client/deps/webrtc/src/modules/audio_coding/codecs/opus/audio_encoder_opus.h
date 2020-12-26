@@ -160,6 +160,7 @@ class AudioEncoderOpusImpl final : public AudioEncoder {
   // 1 kbps range.
   std::vector<float> bitrate_multipliers_;
   float packet_loss_rate_;
+  const float min_packet_loss_rate_;
   std::vector<int16_t> input_buffer_;
   OpusEncInst* inst_;
   uint32_t first_timestamp_in_buffer_;

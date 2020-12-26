@@ -66,7 +66,7 @@ class TurnServerConnection {
 // handles TURN messages (via HandleTurnMessage) and channel data messages
 // (via HandleChannelData) for this allocation when received by the server.
 // The object self-deletes and informs the server if its lifetime timer expires.
-class TurnServerAllocation : public rtc::MessageHandlerAutoCleanup,
+class TurnServerAllocation : public rtc::MessageHandler,
                              public sigslot::has_slots<> {
  public:
   TurnServerAllocation(TurnServer* server_,

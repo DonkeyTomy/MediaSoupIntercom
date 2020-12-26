@@ -20,7 +20,6 @@
 #include "modules/video_coding/frame_buffer2.h"
 #include "modules/video_coding/timing.h"
 #include "rtc_base/platform_thread.h"
-#include "rtc_base/synchronization/mutex.h"
 #include "rtc_base/task_queue.h"
 #include "rtc_base/thread_checker.h"
 #include "system_wrappers/include/clock.h"
@@ -62,16 +61,16 @@ class VideoStreamDecoderImpl : public VideoStreamDecoderInterface {
     kDecodeFailure,
   };
 
-  struct FrameInfo {
-    int64_t timestamp = -1;
+  struct FrameTimestamps {
+    int64_t timestamp;
     int64_t decode_start_time_ms;
     int64_t render_time_us;
-    VideoContentType content_type;
   };
 
-  void SaveFrameInfo(const video_coding::EncodedFrame& frame)
+  void SaveFrameTimestamps(const video_coding::EncodedFrame& frame)
       RTC_RUN_ON(bookkeeping_queue_);
-  FrameInfo* GetFrameInfo(int64_t timestamp) RTC_RUN_ON(bookkeeping_queue_);
+  FrameTimestamps* GetFrameTimestamps(int64_t timestamp)
+      RTC_RUN_ON(bookkeeping_queue_);
   void StartNextDecode() RTC_RUN_ON(bookkeeping_queue_);
   void OnNextFrameCallback(std::unique_ptr<video_coding::EncodedFrame> frame,
                            video_coding::FrameBuffer::ReturnReason res)
@@ -90,10 +89,10 @@ class VideoStreamDecoderImpl : public VideoStreamDecoderInterface {
 
   // Some decoders are pipelined so it is not sufficient to save frame info
   // for the last frame only.
-  static constexpr int kFrameInfoMemory = 8;
-  std::array<FrameInfo, kFrameInfoMemory> frame_info_
+  static constexpr int kFrameTimestampsMemory = 8;
+  std::array<FrameTimestamps, kFrameTimestampsMemory> frame_timestamps_
       RTC_GUARDED_BY(bookkeeping_queue_);
-  int next_frame_info_index_ RTC_GUARDED_BY(bookkeeping_queue_);
+  int next_frame_timestamps_index_ RTC_GUARDED_BY(bookkeeping_queue_);
   VideoStreamDecoderInterface::Callbacks* const callbacks_
       RTC_PT_GUARDED_BY(bookkeeping_queue_);
   video_coding::VideoLayerFrameId last_continuous_id_
@@ -113,8 +112,8 @@ class VideoStreamDecoderImpl : public VideoStreamDecoderInterface {
   // safe for the |decode_queue_| to be destructed. After that the |decoder_|
   // can be destructed, and then the |bookkeeping_queue_|. Finally the
   // |frame_buffer_| can be destructed.
-  Mutex shut_down_mutex_;
-  bool shut_down_ RTC_GUARDED_BY(shut_down_mutex_);
+  rtc::CriticalSection shut_down_crit_;
+  bool shut_down_ RTC_GUARDED_BY(shut_down_crit_);
   video_coding::FrameBuffer frame_buffer_ RTC_GUARDED_BY(bookkeeping_queue_);
   rtc::TaskQueue bookkeeping_queue_;
   std::unique_ptr<VideoDecoder> decoder_ RTC_GUARDED_BY(decode_queue_);

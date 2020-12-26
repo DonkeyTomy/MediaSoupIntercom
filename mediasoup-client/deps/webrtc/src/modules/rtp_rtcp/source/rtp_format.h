@@ -18,6 +18,7 @@
 
 #include "absl/types/optional.h"
 #include "api/array_view.h"
+#include "modules/include/module_common_types.h"
 #include "modules/rtp_rtcp/source/rtp_video_header.h"
 
 namespace webrtc {
@@ -40,7 +41,8 @@ class RtpPacketizer {
       rtc::ArrayView<const uint8_t> payload,
       PayloadSizeLimits limits,
       // Codec-specific details.
-      const RTPVideoHeader& rtp_video_header);
+      const RTPVideoHeader& rtp_video_header,
+      const RTPFragmentationHeader* fragmentation);
 
   virtual ~RtpPacketizer() = default;
 

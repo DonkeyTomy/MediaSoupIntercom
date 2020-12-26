@@ -55,12 +55,9 @@
 #include <memory>
 #include <string>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 
 #include "api/scoped_refptr.h"
-#include "api/task_queue/queued_task.h"
-#include "api/task_queue/task_queue_base.h"
 #include "rtc_base/event.h"
 #include "rtc_base/message_handler.h"
 #include "rtc_base/ref_counted_object.h"
@@ -98,8 +95,27 @@ class ReturnType<void> {
   void moved_result() {}
 };
 
+namespace internal {
+
+class RTC_EXPORT SynchronousMethodCall : public rtc::MessageData,
+                                         public rtc::MessageHandler {
+ public:
+  explicit SynchronousMethodCall(rtc::MessageHandler* proxy);
+  ~SynchronousMethodCall() override;
+
+  void Invoke(const rtc::Location& posted_from, rtc::Thread* t);
+
+ private:
+  void OnMessage(rtc::Message*) override;
+
+  rtc::Event e_;
+  rtc::MessageHandler* proxy_;
+};
+
+}  // namespace internal
+
 template <typename C, typename R, typename... Args>
-class MethodCall : public QueuedTask {
+class MethodCall : public rtc::Message, public rtc::MessageHandler {
  public:
   typedef R (C::*Method)(Args...);
   MethodCall(C* c, Method m, Args&&... args)
@@ -108,21 +124,12 @@ class MethodCall : public QueuedTask {
         args_(std::forward_as_tuple(std::forward<Args>(args)...)) {}
 
   R Marshal(const rtc::Location& posted_from, rtc::Thread* t) {
-    if (t->IsCurrent()) {
-      Invoke(std::index_sequence_for<Args...>());
-    } else {
-      t->PostTask(std::unique_ptr<QueuedTask>(this));
-      event_.Wait(rtc::Event::kForever);
-    }
+    internal::SynchronousMethodCall(this).Invoke(posted_from, t);
     return r_.moved_result();
   }
 
  private:
-  bool Run() override {
-    Invoke(std::index_sequence_for<Args...>());
-    event_.Set();
-    return false;
-  }
+  void OnMessage(rtc::Message*) { Invoke(std::index_sequence_for<Args...>()); }
 
   template <size_t... Is>
   void Invoke(std::index_sequence<Is...>) {
@@ -133,11 +140,10 @@ class MethodCall : public QueuedTask {
   Method m_;
   ReturnType<R> r_;
   std::tuple<Args&&...> args_;
-  rtc::Event event_;
 };
 
 template <typename C, typename R, typename... Args>
-class ConstMethodCall : public QueuedTask {
+class ConstMethodCall : public rtc::Message, public rtc::MessageHandler {
  public:
   typedef R (C::*Method)(Args...) const;
   ConstMethodCall(const C* c, Method m, Args&&... args)
@@ -146,21 +152,12 @@ class ConstMethodCall : public QueuedTask {
         args_(std::forward_as_tuple(std::forward<Args>(args)...)) {}
 
   R Marshal(const rtc::Location& posted_from, rtc::Thread* t) {
-    if (t->IsCurrent()) {
-      Invoke(std::index_sequence_for<Args...>());
-    } else {
-      t->PostTask(std::unique_ptr<QueuedTask>(this));
-      event_.Wait(rtc::Event::kForever);
-    }
+    internal::SynchronousMethodCall(this).Invoke(posted_from, t);
     return r_.moved_result();
   }
 
  private:
-  bool Run() override {
-    Invoke(std::index_sequence_for<Args...>());
-    event_.Set();
-    return false;
-  }
+  void OnMessage(rtc::Message*) { Invoke(std::index_sequence_for<Args...>()); }
 
   template <size_t... Is>
   void Invoke(std::index_sequence<Is...>) {
@@ -171,7 +168,6 @@ class ConstMethodCall : public QueuedTask {
   Method m_;
   ReturnType<R> r_;
   std::tuple<Args&&...> args_;
-  rtc::Event event_;
 };
 
 // Helper macros to reduce code duplication.
@@ -398,18 +394,6 @@ class ConstMethodCall : public QueuedTask {
     ConstMethodCall<C, r, t1, t2, t3> call(c_, &C::method, std::move(a1), \
                                            std::move(a2), std::move(a3)); \
     return call.Marshal(RTC_FROM_HERE, worker_thread_);                   \
-  }
-
-// For use when returning purely const state (set during construction).
-// Use with caution. This method should only be used when the return value will
-// always be the same.
-#define BYPASS_PROXY_CONSTMETHOD0(r, method)                                \
-  r method() const override {                                               \
-    static_assert(                                                          \
-        std::is_same<r, rtc::Thread*>::value || !std::is_pointer<r>::value, \
-        "Type is a pointer");                                               \
-    static_assert(!std::is_reference<r>::value, "Type is a reference");     \
-    return c_->method();                                                    \
   }
 
 }  // namespace webrtc

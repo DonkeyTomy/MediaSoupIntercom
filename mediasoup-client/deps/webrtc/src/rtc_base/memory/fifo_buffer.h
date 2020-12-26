@@ -14,9 +14,6 @@
 #include <memory>
 
 #include "rtc_base/stream.h"
-#include "rtc_base/synchronization/mutex.h"
-#include "rtc_base/task_utils/pending_task_safety_flag.h"
-#include "rtc_base/task_utils/to_queued_task.h"
 
 namespace rtc {
 
@@ -100,19 +97,13 @@ class FifoBuffer final : public StreamInterface {
   bool GetWriteRemaining(size_t* size) const;
 
  private:
-  void PostEvent(int events, int err) {
-    owner_->PostTask(webrtc::ToQueuedTask(task_safety_, [this, events, err]() {
-      SignalEvent(this, events, err);
-    }));
-  }
-
   // Helper method that implements ReadOffset. Caller must acquire a lock
   // when calling this method.
   StreamResult ReadOffsetLocked(void* buffer,
                                 size_t bytes,
                                 size_t offset,
                                 size_t* bytes_read)
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
+      RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_);
 
   // Helper method that implements WriteOffset. Caller must acquire a lock
   // when calling this method.
@@ -120,24 +111,22 @@ class FifoBuffer final : public StreamInterface {
                                  size_t bytes,
                                  size_t offset,
                                  size_t* bytes_written)
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
-
-  webrtc::ScopedTaskSafety task_safety_;
+      RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_);
 
   // keeps the opened/closed state of the stream
-  StreamState state_ RTC_GUARDED_BY(mutex_);
+  StreamState state_ RTC_GUARDED_BY(crit_);
   // the allocated buffer
-  std::unique_ptr<char[]> buffer_ RTC_GUARDED_BY(mutex_);
+  std::unique_ptr<char[]> buffer_ RTC_GUARDED_BY(crit_);
   // size of the allocated buffer
-  size_t buffer_length_ RTC_GUARDED_BY(mutex_);
+  size_t buffer_length_ RTC_GUARDED_BY(crit_);
   // amount of readable data in the buffer
-  size_t data_length_ RTC_GUARDED_BY(mutex_);
+  size_t data_length_ RTC_GUARDED_BY(crit_);
   // offset to the readable data
-  size_t read_position_ RTC_GUARDED_BY(mutex_);
+  size_t read_position_ RTC_GUARDED_BY(crit_);
   // stream callbacks are dispatched on this thread
-  Thread* const owner_;
+  Thread* owner_;
   // object lock
-  mutable webrtc::Mutex mutex_;
+  CriticalSection crit_;
   RTC_DISALLOW_COPY_AND_ASSIGN(FifoBuffer);
 };
 

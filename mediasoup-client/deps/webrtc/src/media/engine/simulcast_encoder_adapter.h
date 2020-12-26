@@ -26,7 +26,6 @@
 #include "modules/video_coding/utility/framerate_controller.h"
 #include "rtc_base/atomic_ops.h"
 #include "rtc_base/synchronization/sequence_checker.h"
-#include "rtc_base/system/no_unique_address.h"
 #include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {
@@ -71,7 +70,8 @@ class RTC_EXPORT SimulcastEncoderAdapter : public VideoEncoder {
   EncodedImageCallback::Result OnEncodedImage(
       size_t stream_idx,
       const EncodedImage& encoded_image,
-      const CodecSpecificInfo* codec_specific_info);
+      const CodecSpecificInfo* codec_specific_info,
+      const RTPFragmentationHeader* fragmentation);
 
   EncoderInfo GetEncoderInfo() const override;
 
@@ -125,7 +125,7 @@ class RTC_EXPORT SimulcastEncoderAdapter : public VideoEncoder {
   EncodedImageCallback* encoded_complete_callback_;
 
   // Used for checking the single-threaded access of the encoder interface.
-  RTC_NO_UNIQUE_ADDRESS SequenceChecker encoder_queue_;
+  SequenceChecker encoder_queue_;
 
   // Store encoders in between calls to Release and InitEncode, so they don't
   // have to be recreated. Remaining encoders are destroyed by the destructor.

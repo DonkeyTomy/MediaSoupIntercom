@@ -18,8 +18,8 @@
 #include "api/video/video_frame_buffer.h"
 #include "api/video/video_rotation.h"
 #include "api/video/video_sink_interface.h"
+#include "rtc_base/critical_section.h"
 #include "rtc_base/event.h"
-#include "rtc_base/synchronization/mutex.h"
 
 namespace cricket {
 
@@ -33,46 +33,46 @@ class FakeVideoRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
   int errors() const { return errors_; }
 
   int width() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return width_;
   }
   int height() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return height_;
   }
 
   webrtc::VideoRotation rotation() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return rotation_;
   }
 
   int64_t timestamp_us() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return timestamp_us_;
   }
 
   int num_rendered_frames() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return num_rendered_frames_;
   }
 
   bool black_frame() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return black_frame_;
   }
 
   int64_t ntp_time_ms() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return ntp_timestamp_ms_;
   }
 
   absl::optional<webrtc::ColorSpace> color_space() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return color_space_;
   }
 
   webrtc::RtpPacketInfos packet_infos() const {
-    webrtc::MutexLock lock(&mutex_);
+    rtc::CritScope cs(&crit_);
     return packet_infos_;
   }
 
@@ -140,7 +140,7 @@ class FakeVideoRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
   int num_rendered_frames_ = 0;
   int64_t ntp_timestamp_ms_ = 0;
   bool black_frame_ = false;
-  mutable webrtc::Mutex mutex_;
+  rtc::CriticalSection crit_;
   rtc::Event frame_rendered_event_;
   absl::optional<webrtc::ColorSpace> color_space_;
   webrtc::RtpPacketInfos packet_infos_;

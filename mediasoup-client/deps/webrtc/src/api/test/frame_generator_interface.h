@@ -32,8 +32,7 @@ class FrameGeneratorInterface {
     absl::optional<VideoFrame::UpdateRect> update_rect;
   };
 
-  enum class OutputType { kI420, kI420A, kI010, kNV12 };
-  static const char* OutputTypeToString(OutputType type);
+  enum class OutputType { kI420, kI420A, kI010 };
 
   virtual ~FrameGeneratorInterface() = default;
 

@@ -65,13 +65,13 @@ class ConnectionRequest : public StunRequest {
   int resend_delay() override;
 
  private:
-  Connection* const connection_;
+  Connection* connection_;
 };
 
 // Represents a communication link between a port on the local client and a
 // port on the remote client.
 class Connection : public CandidatePairInterface,
-                   public rtc::MessageHandlerAutoCleanup,
+                   public rtc::MessageHandler,
                    public sigslot::has_slots<> {
  public:
   struct SentPing {

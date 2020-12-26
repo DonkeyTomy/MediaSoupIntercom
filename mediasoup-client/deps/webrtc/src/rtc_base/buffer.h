@@ -370,9 +370,7 @@ class BufferT {
                        : capacity;
 
     std::unique_ptr<T[]> new_data(new T[new_capacity]);
-    if (data_ != nullptr) {
-      std::memcpy(new_data.get(), data_.get(), size_ * sizeof(T));
-    }
+    std::memcpy(new_data.get(), data_.get(), size_ * sizeof(T));
     MaybeZeroCompleteBuffer();
     data_ = std::move(new_data);
     capacity_ = new_capacity;

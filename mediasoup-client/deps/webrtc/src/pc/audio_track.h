@@ -14,8 +14,9 @@
 #include <string>
 
 #include "api/media_stream_interface.h"
-#include "api/media_stream_track.h"
 #include "api/scoped_refptr.h"
+#include "pc/media_stream_track.h"
+#include "rtc_base/constructor_magic.h"
 #include "rtc_base/thread_checker.h"
 
 namespace webrtc {
@@ -26,11 +27,6 @@ class AudioTrack : public MediaStreamTrack<AudioTrackInterface>,
   // Protected ctor to force use of factory method.
   AudioTrack(const std::string& label,
              const rtc::scoped_refptr<AudioSourceInterface>& source);
-
-  AudioTrack() = delete;
-  AudioTrack(const AudioTrack&) = delete;
-  AudioTrack& operator=(const AudioTrack&) = delete;
-
   ~AudioTrack() override;
 
  public:
@@ -38,10 +34,10 @@ class AudioTrack : public MediaStreamTrack<AudioTrackInterface>,
       const std::string& id,
       const rtc::scoped_refptr<AudioSourceInterface>& source);
 
+ private:
   // MediaStreamTrack implementation.
   std::string kind() const override;
 
- private:
   // AudioTrackInterface implementation.
   AudioSourceInterface* GetSource() const override;
 
@@ -54,6 +50,7 @@ class AudioTrack : public MediaStreamTrack<AudioTrackInterface>,
  private:
   const rtc::scoped_refptr<AudioSourceInterface> audio_source_;
   rtc::ThreadChecker thread_checker_;
+  RTC_DISALLOW_IMPLICIT_CONSTRUCTORS(AudioTrack);
 };
 
 }  // namespace webrtc
