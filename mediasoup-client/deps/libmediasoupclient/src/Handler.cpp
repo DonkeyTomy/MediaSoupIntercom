@@ -121,8 +121,10 @@ namespace mediasoupclient
 	{
 		MSC_TRACE();
 
-		if (localSdpObject.empty())
-			localSdpObject = sdptransform::parse(this->pc->GetLocalDescription());
+		if (localSdpObject.empty()) {
+		    MSC_DEBUG("localSdpObject is empty");
+            localSdpObject = sdptransform::parse(this->pc->GetLocalDescription());
+        }
 
 		// Get our local DTLS parameters.
 		auto dtlsParameters = Sdp::Utils::extractDtlsParameters(localSdpObject);
@@ -132,6 +134,7 @@ namespace mediasoupclient
 
 		// Update the remote DTLS role in the SDP.
 		std::string remoteDtlsRole = localDtlsRole == "client" ? "server" : "client";
+		MSC_DEBUG("remoteDtls = %s.", remoteDtlsRole.c_str());
 		this->remoteSdp->UpdateDtlsRole(remoteDtlsRole);
 
 		// May throw.
@@ -199,19 +202,22 @@ namespace mediasoupclient
 		std::string offer;
 		std::string localId;
 		json& sendingRtpParameters = this->sendingRtpParametersByKind[track->kind()];
-
+        json localSdpObject;
 		try
 		{
 			webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 
 			offer               = this->pc->CreateOffer(options);
-			auto localSdpObject = sdptransform::parse(offer);
+			MSC_WARN("CreateOffer(). %s", offer.c_str());
+			localSdpObject = sdptransform::parse(offer);
 
 			// Transport is not ready.
-			if (!this->transportReady)
+			if (!this->transportReady) {
+				MSC_WARN("transport not Ready");
 				this->SetupTransport("server", localSdpObject);
+			}
 
-			MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
+			MSC_WARN("calling pc->SetLocalDescription():\n");
 
 			this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
 
@@ -229,10 +235,11 @@ namespace mediasoupclient
 
 			throw;
 		}
-
-		auto localSdp       = this->pc->GetLocalDescription();
-		auto localSdpObject = sdptransform::parse(localSdp);
-
+		MSC_WARN("calling pc->GetLocalDescription() - 1\n");
+//		auto localSdp       = this->pc->GetLocalDescription();
+//        MSC_DEBUG("calling sdptransform::parse() %s\n", localSdp.c_str());
+//		auto localSdpObject = sdptransform::parse(localSdp);
+		MSC_WARN("calling sdptransform::parse() finish\n");
 		json& offerMediaObject = localSdpObject["media"][mediaSectionIdx.idx];
 
 		// Set RTCP CNAME.
@@ -266,6 +273,7 @@ namespace mediasoupclient
 				sendingRtpParameters["encodings"].push_back(jsonEncoding);
 			}
 		}
+        MSC_DEBUG("Set RTCP CNAME.\n");
 
 		// If VP8 and there is effective simulcast, add scalabilityMode to each encoding.
 		auto mimeType = sendingRtpParameters["codecs"][0]["mimeType"].get<std::string>();
@@ -285,6 +293,7 @@ namespace mediasoupclient
 			}
 		}
 
+        MSC_DEBUG("SendRemoteSdp()\n");
 		this->remoteSdp->Send(
 		  offerMediaObject,
 		  mediaSectionIdx.reuseMid,

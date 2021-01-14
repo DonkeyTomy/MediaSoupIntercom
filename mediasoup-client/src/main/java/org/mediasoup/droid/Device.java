@@ -1,5 +1,7 @@
 package org.mediasoup.droid;
 
+import android.util.Log;
+
 public class Device {
 
   private long mNativeDevice;
@@ -55,6 +57,7 @@ public class Device {
       String appData)
       throws MediasoupException {
     checkDeviceExists();
+    Log.d("SendTransport", "id = " + id);
     return nativeCreateSendTransport(
         mNativeDevice,
         listener,

@@ -236,7 +236,7 @@ static ScopedJavaLocalRef<jobject> JNI_SendTransport_Produce(
 			appData = json::parse(JavaToNativeString(env, j_appData));
 		}
 		auto transport = (reinterpret_cast<OwnedSendTransport*>(j_transport))->transport();
-		MSC_WARN("Produce");
+		MSC_DEBUG("Producer - 1");
 		auto producer  = transport->Produce(listener, track, &encodings, &codecOptions, appData);
 		MSC_WARN("NativeToJavaProducer");
 		return NativeToJavaProducer(env, producer, listener);
