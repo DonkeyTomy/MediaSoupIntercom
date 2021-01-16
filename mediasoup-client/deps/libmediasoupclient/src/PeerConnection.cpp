@@ -270,6 +270,7 @@ namespace mediasoupclient
 	{
 		MSC_TRACE();
 
+		MSC_WARN("AddTransceiver() ======== MediaType");
 		auto result = this->pc->AddTransceiver(mediaType);
 
 		if (!result.ok())
@@ -287,6 +288,7 @@ namespace mediasoupclient
 	  webrtc::RtpTransceiverInit rtpTransceiverInit)
 	{
 		MSC_TRACE();
+		MSC_WARN("AddTransceiver() ======== ");
 
 		/*
 		 * Define a stream id so the generated local description is correct.
@@ -450,6 +452,7 @@ namespace mediasoupclient
 		std::string sdp;
 
 		ownedDesc->ToString(&sdp);
+		MSC_WARN("OnSuccess() ======== %s.", sdp.c_str());
 		this->promise.set_value(sdp);
 	};
 

@@ -208,9 +208,9 @@ namespace mediasoupclient
 			webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 
 			offer               = this->pc->CreateOffer(options);
-			MSC_WARN("CreateOffer(). %s", offer.c_str());
+//			MSC_WARN("CreateOffer(). %s", mOffer.c_str());
 			localSdpObject = sdptransform::parse(offer);
-
+//			MSC_WARN("CreateOffer(). %s", localSdpObject.dump().c_str());
 			// Transport is not ready.
 			if (!this->transportReady) {
 				MSC_WARN("transport not Ready");
@@ -293,7 +293,7 @@ namespace mediasoupclient
 			}
 		}
 
-        MSC_DEBUG("SendRemoteSdp()\n");
+        MSC_WARN("SendRemoteSdp(): offObject = %s\n", offerMediaObject.dump().c_str());
 		this->remoteSdp->Send(
 		  offerMediaObject,
 		  mediaSectionIdx.reuseMid,
@@ -303,7 +303,7 @@ namespace mediasoupclient
 
 		auto answer = this->remoteSdp->GetSdp();
 
-		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+		MSC_ERROR("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
 
@@ -426,15 +426,15 @@ namespace mediasoupclient
 
 		auto offer = this->pc->CreateOffer(options);
 
-		MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
+		MSC_WARN("calling pc->SetLocalDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
 
-		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
+//		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
 		auto answer      = this->remoteSdp->GetSdp();
 
-		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+		MSC_ERROR("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
@@ -564,7 +564,7 @@ namespace mediasoupclient
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
 
-		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
+//		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
 		auto answer      = this->remoteSdp->GetSdp();
 
 		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
