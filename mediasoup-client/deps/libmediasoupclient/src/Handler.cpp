@@ -217,7 +217,7 @@ namespace mediasoupclient
 				this->SetupTransport("server", localSdpObject);
 			}
 
-			MSC_WARN("calling pc->SetLocalDescription():\n");
+//			MSC_WARN("calling pc->SetLocalDescription():\n");
 
 			this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
 
@@ -235,11 +235,11 @@ namespace mediasoupclient
 
 			throw;
 		}
-		MSC_WARN("calling pc->GetLocalDescription() - 1\n");
+//		MSC_WARN("calling pc->GetLocalDescription() - 1\n");
 //		auto localSdp       = this->pc->GetLocalDescription();
 //        MSC_DEBUG("calling sdptransform::parse() %s\n", localSdp.c_str());
 //		auto localSdpObject = sdptransform::parse(localSdp);
-		MSC_WARN("calling sdptransform::parse() finish\n");
+//		MSC_WARN("calling sdptransform::parse() finish\n");
 		json& offerMediaObject = localSdpObject["media"][mediaSectionIdx.idx];
 
 		// Set RTCP CNAME.
@@ -293,7 +293,7 @@ namespace mediasoupclient
 			}
 		}
 
-        MSC_WARN("SendRemoteSdp(): offObject = %s\n", offerMediaObject.dump().c_str());
+//        MSC_WARN("SendRemoteSdp(): offObject = %s\n", offerMediaObject.dump().c_str());
 		this->remoteSdp->Send(
 		  offerMediaObject,
 		  mediaSectionIdx.reuseMid,
@@ -303,7 +303,7 @@ namespace mediasoupclient
 
 		auto answer = this->remoteSdp->GetSdp();
 
-		MSC_ERROR("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+//		MSC_ERROR("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
 
@@ -426,7 +426,7 @@ namespace mediasoupclient
 
 		auto offer = this->pc->CreateOffer(options);
 
-		MSC_WARN("calling pc->SetLocalDescription():\n%s", offer.c_str());
+        MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
@@ -434,7 +434,7 @@ namespace mediasoupclient
 //		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
 		auto answer      = this->remoteSdp->GetSdp();
 
-		MSC_ERROR("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
